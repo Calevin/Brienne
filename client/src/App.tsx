@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import AgendaHoy from './components/AgendaHoy';
+import TaskFeed from './components/TaskFeed';
 
 // Ejemplo de estado global UI local con Zustand.
 // Minimalista y directo sin Context Providers.
@@ -28,11 +29,8 @@ function App() {
         
         {/* Main content placeholder basado en el Layout Mondrian */}
         <main className="flex-1 grid grid-cols-12 h-full overflow-hidden">
-          {/* Grilla 8/4 de la izquierda */}
-          <div className="col-span-8 border-r-neo-thick bg-white p-6 overflow-y-auto">
-            <h1 className="text-3xl font-black uppercase mb-4">Tareas de Hoy</h1>
-            <p className="font-label">React Query estará aquí inyectando data pronto.</p>
-          </div>
+          
+          <TaskFeed />
           
           {/* Right Panel: Calendar & Agenda (4 columns) */}
           <aside className="col-span-4 bg-surface-container flex flex-col overflow-y-auto">
