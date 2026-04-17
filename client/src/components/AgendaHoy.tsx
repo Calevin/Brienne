@@ -26,17 +26,46 @@ export default function AgendaHoy() {
     );
   }
 
-  // Mapear los slots fijos de diseño
-  const events = [
-    { time: "08:00", title: tasks?.[0]?.title || "Desayuno de Escuadrón", bgClass: "" },
-    { time: "09:00", title: tasks?.[1]?.title || "Reunión de Tácticas", bgClass: "bg-primary text-white" },
-    { time: "10:00", title: tasks?.[2]?.title || "Patrulla de Perímetro", bgClass: "" },
-    { time: "11:00", title: "--", bgClass: "" },
-    { time: "12:00", title: "Almuerzo", bgClass: "" },
-    { time: "13:00", title: "Entrenamiento Espada", bgClass: "bg-[#fac901]" },
-    { time: "14:00", title: "Reunión con Jaime", bgClass: "" },
-    { time: "15:00", title: "Descanso", bgClass: "", isLast: true },
+  // Paleta de colores neo-brutalista cíclica
+  const PALETTE = [
+    "bg-primary text-white",     // Azul principal
+    "bg-[#fac901] text-black",   // Amarillo 
+    "bg-[#ff1e01] text-white",   // Rojo
+    "bg-black text-white"        // Negro
   ];
+
+  const now = new Date();
+  const startHourBase = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() - 2, 0, 0);
+
+  const events = Array.from({ length: 8 }).map((_, i) => {
+    const slotTime = new Date(startHourBase.getTime() + i * 60 * 60 * 1000);
+    const timeString = `${slotTime.getHours().toString().padStart(2, '0')}:00`;
+    
+    const targetYear = slotTime.getFullYear();
+    const targetMonth = slotTime.getMonth();
+    const targetDate = slotTime.getDate();
+    const targetHour = slotTime.getHours();
+
+    const taskForSlot = tasks?.find(task => {
+      if (!task.dueDate) return false;
+      const dueDate = new Date(task.dueDate);
+      return (
+        dueDate.getFullYear() === targetYear &&
+        dueDate.getMonth() === targetMonth &&
+        dueDate.getDate() === targetDate &&
+        dueDate.getHours() === targetHour
+      );
+    });
+
+    const bgClass = taskForSlot ? PALETTE[i % PALETTE.length] : "";
+
+    return {
+      time: timeString,
+      title: taskForSlot?.title || "--",
+      bgClass,
+      isLast: i === 7
+    };
+  });
 
   return (
     <div className="flex-1 flex flex-col">
