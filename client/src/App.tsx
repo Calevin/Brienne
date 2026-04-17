@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import Header from './components/Header';
+import Sidebar from './components/Sidebar';
 
 // Ejemplo de estado global UI local con Zustand.
 // Minimalista y directo sin Context Providers.
@@ -22,12 +23,7 @@ function App() {
       <Header />
       {/* Aplicamos top-14 (mt-14 equivalente) dado que el Header es fixed y h-14 */}
       <div className="flex bg-surface w-full h-[calc(100vh-56px)] mt-14 overflow-hidden">
-        {/* Sidebar Placeholder */}
-        <aside className={`border-r-neo-thick bg-white flex flex-col items-center py-4 ${sidebarOpen ? 'w-64' : 'w-16'} transition-all z-40 relative`}>
-          <button onClick={toggleSidebar} className="w-12 h-12 bg-primary text-white border-neo hover:bg-primary-container font-black">
-            {sidebarOpen ? 'X' : 'S'}
-          </button>
-        </aside>
+        <Sidebar />
         
         {/* Main content placeholder basado en el Layout Mondrian */}
         <main className="flex-1 grid grid-cols-12 h-full overflow-hidden">
