@@ -1,8 +1,36 @@
+import { useTasksQuery } from "../hooks/useTasks";
+
 export default function AgendaHoy() {
+  const { data: tasks, isLoading, isError } = useTasksQuery();
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex flex-col">
+        <div className="px-6 py-3 bg-secondary border-b-neo-thick">
+          <h4 className="text-white text-2xl font-black uppercase">Agenda Hoy</h4>
+        </div>
+        <div className="flex-1 bg-white p-8 flex items-center justify-center font-bold">
+           CARGANDO...
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+       <div className="flex-1 flex flex-col">
+        <div className="px-6 py-3 bg-[#ff1e01] border-b-neo-thick">
+          <h4 className="text-white text-2xl font-black uppercase">Agenda Hoy (ERR)</h4>
+        </div>
+      </div>
+    );
+  }
+
+  // Mapear los slots fijos de diseño
   const events = [
-    { time: "08:00", title: "Desayuno de Escuadrón", bgClass: "" },
-    { time: "09:00", title: "Reunión de Tácticas", bgClass: "bg-primary text-white" },
-    { time: "10:00", title: "Patrulla de Perímetro", bgClass: "" },
+    { time: "08:00", title: tasks?.[0]?.title || "Desayuno de Escuadrón", bgClass: "" },
+    { time: "09:00", title: tasks?.[1]?.title || "Reunión de Tácticas", bgClass: "bg-primary text-white" },
+    { time: "10:00", title: tasks?.[2]?.title || "Patrulla de Perímetro", bgClass: "" },
     { time: "11:00", title: "--", bgClass: "" },
     { time: "12:00", title: "Almuerzo", bgClass: "" },
     { time: "13:00", title: "Entrenamiento Espada", bgClass: "bg-[#fac901]" },

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useCreateTaskMutation } from '../hooks/useTasks';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -6,6 +7,37 @@ interface TaskModalProps {
 }
 
 export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
+  const [title, setTitle] = useState('');
+  const [points, setPoints] = useState<number>(1);
+  const [assignee, setAssignee] = useState<string>('');
+
+  const createTaskMutation = useCreateTaskMutation();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+
+    createTaskMutation.mutate(
+      {
+        title,
+        points: points as any, // 1,2,3,5,8,13,21
+        ownerId: 'fixed-user-id-123',
+        assignedTo: assignee ? [assignee] : [],
+        recurrence: null,
+        dueDate: null,
+        completed: false
+      },
+      {
+        onSuccess: () => {
+          setTitle('');
+          setPoints(1);
+          setAssignee('');
+          onClose();
+        }
+      }
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -25,13 +57,14 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
             <span className="font-label font-bold uppercase tracking-[0.2em] text-xs opacity-60">MOD_ADD_TASK_001</span>
             <button 
               onClick={onClose}
+              type="button"
               className="bg-black text-white w-12 h-12 flex items-center justify-center hover:bg-[#ff1e01] transition-colors border-2 border-black hover:scale-105"
             >
               <span className="material-symbols-outlined font-bold">close</span>
             </button>
           </div>
 
-          <form className="grid grid-cols-1 md:grid-cols-12 text-black">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 text-black">
             {/* Title Input (Spans whole width) */}
             <div className="col-span-12 border-b-8 border-black p-8 bg-white">
               <label className="block font-black text-[10px] uppercase mb-4 tracking-[0.25em] text-black/50">Nombre de la Tarea</label>
@@ -40,6 +73,10 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                 placeholder="EJ: VIGILANCIA DE LOS PUERTOS" 
                 type="text"
                 autoFocus
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                autoComplete="off"
+                required
               />
             </div>
 
@@ -60,7 +97,6 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                 <div className="flex flex-wrap gap-2">
                   <button className="px-4 py-2 border-4 border-black bg-[#ff1e01] text-white font-black text-[11px] uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all" type="button">Doméstica</button>
                   <button className="px-4 py-2 border-4 border-black bg-white text-black font-black text-[11px] uppercase tracking-widest hover:bg-[#2250ce] hover:text-white hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all" type="button">Laboral</button>
-                  <button className="px-4 py-2 border-4 border-black bg-white text-black font-black text-[11px] uppercase tracking-widest hover:bg-[#2250ce] hover:text-white hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all" type="button">Guardia</button>
                 </div>
               </div>
 
@@ -68,7 +104,11 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                 <label className="block font-black text-[10px] uppercase mb-4 tracking-[0.25em] text-black">Puntos de Esfuerzo</label>
                 <div className="grid grid-cols-4 lg:grid-cols-7 gap-2">
                   {[1, 2, 3, 5, 8, 13, 21].map((point) => (
-                    <div key={point} className="aspect-square flex items-center justify-center border-4 border-black font-black text-sm cursor-pointer hover:bg-[#fac901] hover:text-black bg-white transition-colors">
+                    <div 
+                      key={point} 
+                      onClick={() => setPoints(point)}
+                      className={`aspect-square flex items-center justify-center border-4 border-black font-black text-sm cursor-pointer hover:bg-[#fac901] hover:text-black transition-colors ${points === point ? 'bg-[#fac901] text-black border-dashed' : 'bg-white'}`}
+                    >
                       {point}
                     </div>
                   ))}
@@ -80,8 +120,8 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
             <div className="col-span-12 md:col-span-6 border-b-8 md:border-b-0 md:border-r-8 border-black p-8 bg-white">
               <label className="block font-black text-[10px] uppercase mb-4 tracking-[0.25em] text-black/50">Fecha y Hora</label>
               <div className="grid grid-cols-2 gap-4">
-                <input className="p-3 font-label text-sm font-bold border-4 border-black focus:outline-none focus:border-[#2250ce] bg-white" type="date" />
-                <input className="p-3 font-label text-sm font-bold border-4 border-black focus:outline-none focus:border-[#2250ce] bg-white" type="time" />
+                <input className="p-3 font-label text-sm font-bold border-4 border-black focus:outline-none focus:border-[#2250ce] bg-white cursor-not-allowed opacity-50" type="date" disabled title="Not implemented for MVP" />
+                <input className="p-3 font-label text-sm font-bold border-4 border-black focus:outline-none focus:border-[#2250ce] bg-white cursor-not-allowed opacity-50" type="time" disabled title="Not implemented for MVP" />
               </div>
             </div>
 
@@ -92,10 +132,15 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                 <div className="w-12 h-12 bg-white border-4 border-black flex items-center justify-center text-black">
                   <span className="material-symbols-outlined">person</span>
                 </div>
-                <select className="flex-1 p-3 font-black uppercase text-xs tracking-[0.1em] bg-white border-4 border-black focus:outline-none focus:border-[#2250ce] cursor-pointer">
-                  <option>JAIME LANNISTER</option>
-                  <option>BRIENNE DE TARTH</option>
-                  <option>JON SNOW</option>
+                <select 
+                  className="flex-1 p-3 font-black uppercase text-xs tracking-[0.1em] bg-white border-4 border-black focus:outline-none focus:border-[#2250ce] cursor-pointer"
+                  value={assignee}
+                  onChange={(e) => setAssignee(e.target.value)}
+                >
+                  <option value="">(SIN ASIGNAR)</option>
+                  <option value="JAIME LANNISTER">JAIME LANNISTER</option>
+                  <option value="BRIENNE DE TARTH">BRIENNE DE TARTH</option>
+                  <option value="JON SNOW">JON SNOW</option>
                 </select>
               </div>
             </div>
@@ -104,13 +149,15 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
             <div className="col-span-12 border-t-8 border-black flex flex-col md:flex-row">
               <div className="flex-1 p-6 bg-white hidden md:block">
                 <p className="font-label text-[10px] uppercase font-bold tracking-widest text-[#2250ce]">Sujeto al Código de Honor v.2.4</p>
+                {createTaskMutation.isError && <p className="text-red-500 font-bold text-xs mt-2 uppercase">Error al guardar tarea</p>}
               </div>
               <button 
-                type="button"
-                className="w-full md:w-auto px-12 py-6 bg-black text-[#fac901] font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#2250ce] hover:text-white transition-colors flex items-center justify-center gap-4 group"
+                type="submit"
+                disabled={createTaskMutation.isPending}
+                className="w-full md:w-auto px-12 py-6 bg-black text-[#fac901] font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#2250ce] hover:text-white transition-colors flex items-center justify-center gap-4 group disabled:opacity-50"
               >
-                <span>GUARDAR</span>
-                <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">check_box</span>
+                <span>{createTaskMutation.isPending ? 'ENVIANDO...' : 'GUARDAR'}</span>
+                {!createTaskMutation.isPending && <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">check_box</span>}
               </button>
             </div>
           </form>

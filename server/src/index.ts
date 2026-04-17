@@ -14,11 +14,16 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/brienne';
 // Middlewares
 app.use(cors());
 app.use(express.json());
+import taskRoutes from './routes/task.routes';
 
 // Routes (Por ahora un healthcheck de integración)
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'Guardajuramentos Server' });
 });
+
+// App Routes
+app.use('/api/tasks', taskRoutes);
+
 
 // Iniciamos la BD y luego el servidor
 const startServer = async () => {
