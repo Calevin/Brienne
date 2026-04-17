@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useCreateTaskMutation, useTasksQuery, useUpdateTaskMutation } from '../hooks/useTasks';
+import { useCreateTaskMutation, useTasksQuery, useUpdateTaskMutation, useDeleteTaskMutation } from '../hooks/useTasks';
 import { useUIStore } from '../store/uiStore';
 
 interface TaskModalProps {
@@ -11,7 +11,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
   const { selectedTaskId } = useUIStore();
   const { data: tasks } = useTasksQuery();
   
-  const [mode, setMode] = useState<'create' | 'view' | 'edit'>('create');
+  const [mode, setMode] = useState<'create' | 'view' | 'edit' | 'delete_confirm'>('create');
   
   const [title, setTitle] = useState('');
   const [points, setPoints] = useState<number>(1);
@@ -21,6 +21,12 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
 
   const createTaskMutation = useCreateTaskMutation();
   const updateTaskMutation = useUpdateTaskMutation();
+  const deleteTaskMutation = useDeleteTaskMutation();
+
+  const handleDelete = () => {
+    if (!selectedTaskId) return;
+    setMode('delete_confirm');
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -101,8 +107,8 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
   if (!isOpen) return null;
 
   const isView = mode === 'view';
-  const isPending = createTaskMutation.isPending || updateTaskMutation.isPending;
-  const isError = createTaskMutation.isError || updateTaskMutation.isError;
+  const isPending = createTaskMutation.isPending || updateTaskMutation.isPending || deleteTaskMutation.isPending;
+  const isError = createTaskMutation.isError || updateTaskMutation.isError || deleteTaskMutation.isError;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 md:p-12 bg-black/80 backdrop-blur-sm">
@@ -110,9 +116,9 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
       <div className="bg-white w-full max-w-5xl border-8 border-black shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] relative flex flex-col md:flex-row max-h-[90vh] overflow-y-auto overflow-x-hidden">
         
         {/* Left Header Section (Asymmetric Branding) */}
-        <div className={`w-full md:w-20 border-b-8 md:border-b-0 md:border-r-8 border-black hidden md:flex items-center justify-center ${mode === 'create' ? 'bg-[#2250ce]' : mode === 'edit' ? 'bg-[#ff1e01]' : 'bg-black'}`}>
+        <div className={`w-full md:w-20 border-b-8 md:border-b-0 md:border-r-8 border-black hidden md:flex items-center justify-center ${mode === 'create' ? 'bg-[#2250ce]' : (mode === 'edit' || mode === 'delete_confirm') ? 'bg-[#ff1e01]' : 'bg-black'}`}>
           <div className="rotate-[-90deg] whitespace-nowrap text-white font-black text-2xl tracking-[0.6em] uppercase">
-             {mode === 'create' ? 'NUEVA TAREA' : mode === 'edit' ? 'EDICIÓN' : 'VISTA'}
+             {mode === 'create' ? 'NUEVA TAREA' : mode === 'edit' ? 'EDICIÓN' : mode === 'delete_confirm' ? 'PELIGRO' : 'VISTA'}
           </div>
         </div>
 
@@ -132,7 +138,39 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 text-black">
+          {mode === 'delete_confirm' ? (
+            <div className="flex flex-col items-center justify-center p-12 md:p-24 bg-white text-center">
+              <span className="material-symbols-outlined text-[120px] text-[#ff1e01] mb-6 drop-shadow-[8px_8px_0px_rgba(0,0,0,1)]">warning</span>
+              <h3 className="font-black text-4xl md:text-5xl uppercase tracking-tighter mb-4 text-black">¿Purga Irreversible?</h3>
+              <p className="font-label text-xl uppercase font-bold text-black/60 max-w-lg mb-12">
+                Esta acción destruirá el registro de manera definitiva y no podrá recuperarse bajo ninguna circunstancia.
+              </p>
+              <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                 <button 
+                  type="button"
+                  onClick={() => setMode('view')}
+                  className="flex-1 md:flex-none px-8 py-4 bg-white text-black border-4 border-black font-black text-xl uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+                 >
+                   CANCELAR
+                 </button>
+                 <button 
+                  type="button"
+                  onClick={() => {
+                      if (selectedTaskId) {
+                          deleteTaskMutation.mutate(selectedTaskId, {
+                              onSuccess: () => onClose()
+                          });
+                      }
+                  }}
+                  disabled={deleteTaskMutation.isPending}
+                  className="flex-1 md:flex-none px-8 py-4 bg-[#ff1e01] text-white border-4 border-black font-black text-xl uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all disabled:opacity-50"
+                 >
+                   {deleteTaskMutation.isPending ? 'PURGANDO...' : 'CONFIRMAR BORRADO'}
+                 </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 text-black">
             {/* Title Input */}
             <div className="col-span-12 border-b-8 border-black p-8 bg-white">
               <label className="block font-black text-[10px] uppercase mb-4 tracking-[0.25em] text-black/50">Nombre de la Tarea</label>
@@ -235,6 +273,18 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                 {isError && <p className="text-red-500 font-bold text-xs mt-2 uppercase">Error al procesar la tarea</p>}
               </div>
 
+              {(mode === 'view' || mode === 'edit') && (
+                <button 
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isPending}
+                  className="w-full md:w-auto px-8 py-6 bg-white text-[#ff1e01] font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#ff1e01] hover:text-white transition-colors flex items-center justify-center gap-4 group disabled:opacity-50"
+                >
+                  <span>BORRAR</span>
+                  <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">delete</span>
+                </button>
+              )}
+
               {mode === 'view' ? (
                 <button 
                   type="button"
@@ -245,7 +295,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                   }}
                   className="w-full md:w-auto px-12 py-6 bg-black text-white font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#ff1e01] transition-colors flex items-center justify-center gap-4 group"
                 >
-                  <span>EDITAR TAREA</span>
+                  <span>EDITAR</span>
                   <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">edit_square</span>
                 </button>
               ) : (
@@ -254,12 +304,13 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                   disabled={isPending}
                   className="w-full md:w-auto px-12 py-6 bg-black text-[#fac901] font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#2250ce] hover:text-white transition-colors flex items-center justify-center gap-4 group disabled:opacity-50"
                 >
-                  <span>{isPending ? 'ENVIANDO...' : (mode === 'edit' ? 'GUARDAR EDICIÓN' : 'GUARDAR')}</span>
+                  <span>{isPending ? 'ENVIANDO...' : (mode === 'edit' ? 'GUARDAR' : 'GUARDAR')}</span>
                   {!isPending && <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">check_box</span>}
                 </button>
               )}
             </div>
           </form>
+          )}
         </div>
 
         {/* Asymmetric Accent Blocks (Mondrian signature) */}

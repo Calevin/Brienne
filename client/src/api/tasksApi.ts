@@ -42,3 +42,13 @@ export const updateTask = async (id: string, taskUpdates: Partial<Task>): Promis
   
   return response.json();
 };
+
+export const deleteTask = async (id: string): Promise<void> => {
+  const response = await fetch(`${BASE_URL}/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete task');
+  }
+};

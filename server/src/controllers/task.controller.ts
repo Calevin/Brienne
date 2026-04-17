@@ -61,3 +61,19 @@ export const updateTask = async (req: Request, res: Response) => {
     res.status(400).json({ error: 'Error updating task' });
   }
 };
+
+export const deleteTask = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const deletedTask = await TaskModel.findByIdAndDelete(id).lean();
+
+    if (!deletedTask) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    res.status(500).json({ error: 'Error deleting task' });
+  }
+};

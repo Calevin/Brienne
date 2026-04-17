@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getTasks, createTask, updateTask } from '../api/tasksApi';
+import { getTasks, createTask, updateTask, deleteTask } from '../api/tasksApi';
 import type { Task, CreateTaskDTO } from '@brienne/shared';
 
 export const TASK_KEYS = {
@@ -30,6 +30,17 @@ export const useUpdateTaskMutation = () => {
 
   return useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: Partial<Task> }) => updateTask(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TASK_KEYS.all });
+    },
+  });
+};
+
+export const useDeleteTaskMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deleteTask(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TASK_KEYS.all });
     },
