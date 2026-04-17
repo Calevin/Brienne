@@ -66,7 +66,8 @@ export default function AgendaHoy() {
       title: taskForSlot?.title || "--",
       bgClass,
       isLast: i === 7,
-      taskId: taskForSlot?.id
+      taskId: taskForSlot?.id,
+      isCompleted: taskForSlot?.completed
     };
   });
 
@@ -84,11 +85,11 @@ export default function AgendaHoy() {
             className={`flex ${evt.isLast ? 'border-b-neo-thick' : 'border-b-neo'} bg-white group ${evt.taskId ? 'cursor-pointer hover:-translate-y-1 transition-transform' : ''}`}
             onClick={() => evt.taskId && openTaskModal(evt.taskId)}
           >
-            <div className={`w-20 p-4 border-r-neo font-label font-bold text-sm bg-white group-hover:bg-[#fac901] transition-colors`}>
+            <div className={`w-20 p-4 border-r-neo font-label font-bold text-sm bg-white group-hover:bg-[#fac901] transition-colors ${evt.isCompleted ? 'opacity-50 text-black/50' : 'text-black'}`}>
               {evt.time}
             </div>
-            <div className={`flex-1 p-4 font-bold uppercase flex items-center ${evt.bgClass}`}>
-              {evt.title}
+            <div className={`flex-1 p-4 font-bold uppercase flex items-center ${evt.bgClass} ${evt.isCompleted ? 'opacity-70' : ''}`}>
+              <span className={evt.isCompleted ? 'line-through decoration-4 decoration-black/80' : ''}>{evt.title}</span>
             </div>
           </div>
         ))}

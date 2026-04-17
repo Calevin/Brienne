@@ -107,6 +107,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
   if (!isOpen) return null;
 
   const isView = mode === 'view';
+  const isCompleted = tasks?.find(t => t.id === selectedTaskId)?.completed;
   const isPending = createTaskMutation.isPending || updateTaskMutation.isPending || deleteTaskMutation.isPending;
   const isError = createTaskMutation.isError || updateTaskMutation.isError || deleteTaskMutation.isError;
 
@@ -286,18 +287,34 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
               )}
 
               {mode === 'view' ? (
-                <button 
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setMode('edit');
-                  }}
-                  className="w-full md:w-auto px-12 py-6 bg-black text-white font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#ff1e01] transition-colors flex items-center justify-center gap-4 group"
-                >
-                  <span>EDITAR</span>
-                  <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">edit_square</span>
-                </button>
+                <>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                        updateTaskMutation.mutate(
+                          { id: selectedTaskId!, updates: { completed: !isCompleted } },
+                          { onSuccess: () => onClose() }
+                        );
+                    }}
+                    disabled={isPending}
+                    className={`w-full md:w-auto px-10 py-6 text-white font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all flex items-center justify-center gap-4 group disabled:opacity-50 ${isCompleted ? 'bg-[#ff1e01]' : 'bg-[#2250ce]'}`}
+                  >
+                    <span>{isCompleted ? 'PENDIENTE' : 'HECHO'}</span>
+                    <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">{isCompleted ? 'settings_backup_restore' : 'task_alt'}</span>
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setMode('edit');
+                    }}
+                    className="w-full md:w-auto px-12 py-6 bg-black text-white font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#ff1e01] transition-colors flex items-center justify-center gap-4 group"
+                  >
+                    <span>EDITAR</span>
+                    <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">edit_square</span>
+                  </button>
+                </>
               ) : (
                 <button 
                   type="submit"
