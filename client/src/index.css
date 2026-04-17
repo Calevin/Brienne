@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/* Importación de tipografías desde Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Space+Grotesk:wght@300..700&display=swap');
+
+@theme {
+  --color-background: #f9f9f9;
+  --color-surface: #ffffff;
+  --color-primary: #bc0002;
+  --color-primary-container: #e22619;
+  --color-secondary: #2c4bdb;
+  --color-tertiary: #715d00;
+  --color-surface-container: #eeeeee;
+
+  --font-headline: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Space Grotesk", sans-serif;
+
+  /* El diseño no permite bordes redondeados (Neo-Brutalismo) */
+  --radius-none: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-full: 0px;
+}
+
+@layer base {
+  body {
+    @apply font-body bg-background text-black antialiased overflow-hidden;
+  }
+}
+
+@layer utilities {
+  .border-neo {
+    @apply border-4 border-black;
+  }
+  .border-neo-thick {
+    @apply border-8 border-black;
+  }
+  .shadow-neo {
+    /* Shadow sólida en la esquina inferior derecha */
+    box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
+  }
+}
+
