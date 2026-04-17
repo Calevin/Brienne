@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { create } from 'zustand';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
+import AgendaHoy from './components/AgendaHoy';
 
 // Ejemplo de estado global UI local con Zustand.
 // Minimalista y directo sin Context Providers.
@@ -33,13 +34,18 @@ function App() {
             <p className="font-label">React Query estará aquí inyectando data pronto.</p>
           </div>
           
-          {/* Agenda de la derecha */}
-          <div className="col-span-4 bg-surface-container p-6 overflow-y-auto">
-            <h2 className="text-2xl font-black uppercase mb-4">Calendario</h2>
-            <div className="w-full h-64 bg-secondary border-neo flex items-center justify-center text-white font-bold">
-              Date-fns Render Component
+          {/* Right Panel: Calendar & Agenda (4 columns) */}
+          <aside className="col-span-4 bg-surface-container flex flex-col overflow-y-auto">
+            {/* Temporal Mini Calendar Placeholder */}
+            <div className="p-8 bg-white border-b-neo-thick">
+              <h2 className="text-2xl font-black uppercase">Octubre</h2>
+              <div className="w-full h-32 bg-secondary border-neo flex items-center justify-center text-white font-bold mt-4">
+                El Calendario se insertará aquí
+              </div>
             </div>
-          </div>
+            
+            <AgendaHoy />
+          </aside>
         </main>
       </div>
     </>
