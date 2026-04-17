@@ -1,14 +1,14 @@
-import { useAppStore } from '../App';
+import { useUIStore } from '../store/uiStore';
 
 export default function Sidebar() {
-  const toggleTaskModal = useAppStore((state) => state.toggleTaskModal);
+  const openTaskModal = useUIStore((state) => state.openTaskModal);
 
   return (
     <aside className="border-r-neo-thick bg-white flex flex-col items-center w-16 transition-all z-40 relative h-full">
       {/* Navigation Tabs */}
       <div className="w-full flex flex-col">
         <button 
-          onClick={toggleTaskModal}
+          onClick={() => openTaskModal()}
           className="bg-white text-black border-b-neo w-full aspect-square flex items-center justify-center hover:bg-[#fac901] transition-all"
         >
           <span className="material-symbols-outlined scale-150">add_box</span>

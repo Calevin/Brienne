@@ -5,9 +5,10 @@ interface TaskCardProps {
   assignee: string;
   imgUrl?: string;
   hasRightBorder?: boolean;
+  onClick?: () => void;
 }
 
-export default function TaskCard({ category, categoryTheme, title, assignee, imgUrl, hasRightBorder = false }: TaskCardProps) {
+export default function TaskCard({ category, categoryTheme, title, assignee, imgUrl, hasRightBorder = false, onClick }: TaskCardProps) {
   let themeStyles = "";
   switch (categoryTheme) {
     case "critical":
@@ -27,7 +28,8 @@ export default function TaskCard({ category, categoryTheme, title, assignee, img
 
   return (
     <div
-      className={`p-8 border-b-8 border-black flex flex-col justify-between bg-white hover:bg-surface-container transition-colors ${
+      onClick={onClick}
+      className={`p-8 border-b-8 border-black flex flex-col justify-between bg-white hover:bg-surface-container transition-colors ${onClick ? 'cursor-pointer' : ''} ${
         hasRightBorder ? "border-r-8" : ""
       }`}
     >

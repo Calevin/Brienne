@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useCreateTaskMutation } from '../hooks/useTasks';
+import { useState, useEffect } from 'react';
+import { useCreateTaskMutation, useTasksQuery, useUpdateTaskMutation } from '../hooks/useTasks';
+import { useUIStore } from '../store/uiStore';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -7,6 +8,11 @@ interface TaskModalProps {
 }
 
 export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
+  const { selectedTaskId } = useUIStore();
+  const { data: tasks } = useTasksQuery();
+  
+  const [mode, setMode] = useState<'create' | 'view' | 'edit'>('create');
+  
   const [title, setTitle] = useState('');
   const [points, setPoints] = useState<number>(1);
   const [assignee, setAssignee] = useState<string>('');
@@ -14,6 +20,36 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
   const [timeStr, setTimeStr] = useState('');
 
   const createTaskMutation = useCreateTaskMutation();
+  const updateTaskMutation = useUpdateTaskMutation();
+
+  useEffect(() => {
+    if (isOpen) {
+      if (selectedTaskId && tasks) {
+        const task = tasks.find(t => t.id === selectedTaskId);
+        if (task) {
+          setTitle(task.title);
+          setPoints(task.points as number || 1);
+          setAssignee(task.assignedTo?.[0] || '');
+          if (task.dueDate) {
+            const date = new Date(task.dueDate);
+            setDateStr(`${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`);
+            setTimeStr(`${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`);
+          } else {
+             setDateStr('');
+             setTimeStr('');
+          }
+          if (mode === 'create') setMode('view');
+        }
+      } else {
+        setTitle('');
+        setPoints(1);
+        setAssignee('');
+        setDateStr('');
+        setTimeStr('');
+        setMode('create');
+      }
+    }
+  }, [isOpen, selectedTaskId, tasks]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,35 +57,52 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
 
     let finalDueDate: Date | null = null;
     if (dateStr) {
-       // Construir Date con la string combinada para soportar horas
        const timeVal = timeStr || '00:00';
        finalDueDate = new Date(`${dateStr}T${timeVal}:00`);
     }
 
-    createTaskMutation.mutate(
-      {
-        title,
-        points: points as any, // 1,2,3,5,8,13,21
-        ownerId: 'fixed-user-id-123',
-        assignedTo: assignee ? [assignee] : [],
-        recurrence: null,
-        dueDate: finalDueDate,
-        completed: false
-      },
-      {
-        onSuccess: () => {
-          setTitle('');
-          setPoints(1);
-          setAssignee('');
-          setDateStr('');
-          setTimeStr('');
-          onClose();
+    if (mode === 'create') {
+      createTaskMutation.mutate(
+        {
+          title,
+          points: points as any,
+          ownerId: 'fixed-user-id-123',
+          assignedTo: assignee ? [assignee] : [],
+          recurrence: null,
+          dueDate: finalDueDate,
+          completed: false
+        },
+        {
+          onSuccess: () => {
+            onClose();
+          }
         }
-      }
-    );
+      );
+    } else if (mode === 'edit' && selectedTaskId) {
+      updateTaskMutation.mutate(
+        {
+          id: selectedTaskId,
+          updates: {
+             title,
+             points: points as any,
+             assignedTo: assignee ? [assignee] : [],
+             dueDate: finalDueDate,
+          }
+        },
+        {
+          onSuccess: () => {
+            onClose();
+          }
+        }
+      );
+    }
   };
 
   if (!isOpen) return null;
+
+  const isView = mode === 'view';
+  const isPending = createTaskMutation.isPending || updateTaskMutation.isPending;
+  const isError = createTaskMutation.isError || updateTaskMutation.isError;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 md:p-12 bg-black/80 backdrop-blur-sm">
@@ -57,15 +110,19 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
       <div className="bg-white w-full max-w-5xl border-8 border-black shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] relative flex flex-col md:flex-row max-h-[90vh] overflow-y-auto overflow-x-hidden">
         
         {/* Left Header Section (Asymmetric Branding) */}
-        <div className="w-full md:w-20 bg-[#2250ce] border-b-8 md:border-b-0 md:border-r-8 border-black hidden md:flex items-center justify-center">
-          <div className="rotate-[-90deg] whitespace-nowrap text-white font-black text-2xl tracking-[0.6em] uppercase">NUEVA TAREA</div>
+        <div className={`w-full md:w-20 border-b-8 md:border-b-0 md:border-r-8 border-black hidden md:flex items-center justify-center ${mode === 'create' ? 'bg-[#2250ce]' : mode === 'edit' ? 'bg-[#ff1e01]' : 'bg-black'}`}>
+          <div className="rotate-[-90deg] whitespace-nowrap text-white font-black text-2xl tracking-[0.6em] uppercase">
+             {mode === 'create' ? 'NUEVA TAREA' : mode === 'edit' ? 'EDICIÓN' : 'VISTA'}
+          </div>
         </div>
 
         {/* Main Form Section */}
         <div className="flex-1">
           {/* Close Button Cell */}
           <div className="flex justify-between items-center border-b-8 border-black px-8 py-6 bg-white">
-            <span className="font-label font-bold uppercase tracking-[0.2em] text-xs opacity-60">MOD_ADD_TASK_001</span>
+            <span className="font-label font-bold uppercase tracking-[0.2em] text-xs opacity-60">
+              {mode === 'create' ? 'MOD_ADD_TASK_001' : `MOD_TASK_${selectedTaskId?.slice(0, 5).toUpperCase()}`}
+            </span>
             <button 
               onClick={onClose}
               type="button"
@@ -76,18 +133,19 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
           </div>
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 text-black">
-            {/* Title Input (Spans whole width) */}
+            {/* Title Input */}
             <div className="col-span-12 border-b-8 border-black p-8 bg-white">
               <label className="block font-black text-[10px] uppercase mb-4 tracking-[0.25em] text-black/50">Nombre de la Tarea</label>
               <input 
-                className="w-full p-4 md:p-6 text-2xl md:text-3xl font-black uppercase tracking-tight bg-white border-4 border-black focus:border-[#2250ce] focus:outline-none focus:ring-0 placeholder:text-black/20" 
+                className={`w-full p-4 md:p-6 text-2xl md:text-3xl font-black uppercase tracking-tight border-4 border-black focus:outline-none focus:ring-0 placeholder:text-black/20 ${isView ? 'bg-black/5' : 'bg-white focus:border-[#2250ce]'}`} 
                 placeholder="EJ: VIGILANCIA DE LOS PUERTOS" 
                 type="text"
-                autoFocus
+                autoFocus={!isView}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 autoComplete="off"
                 required
+                disabled={isView}
               />
             </div>
 
@@ -95,9 +153,10 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
             <div className="col-span-12 md:col-span-7 border-b-8 md:border-r-8 md:border-b-8 border-black p-8 bg-white">
               <label className="block font-black text-[10px] uppercase mb-4 tracking-[0.25em] text-black/50">Descripción (Opcional)</label>
               <textarea 
-                className="w-full p-4 font-body text-base font-medium bg-white resize-none border-4 border-black focus:border-[#2250ce] focus:outline-none focus:ring-0 placeholder:text-black/20" 
+                className={`w-full p-4 font-body text-base font-medium resize-none border-4 border-black focus:outline-none focus:ring-0 placeholder:text-black/20 ${isView ? 'bg-black/5' : 'bg-white focus:border-[#2250ce]'}`}
                 placeholder="DETALLES ESPECÍFICOS DEL JURAMENTO..." 
                 rows={6}
+                disabled={isView}
               />
             </div>
 
@@ -106,8 +165,8 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
               <div className="mb-8">
                 <label className="block font-black text-[10px] uppercase mb-4 tracking-[0.25em] text-black">Categoría</label>
                 <div className="flex flex-wrap gap-2">
-                  <button className="px-4 py-2 border-4 border-black bg-[#ff1e01] text-white font-black text-[11px] uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all" type="button">Doméstica</button>
-                  <button className="px-4 py-2 border-4 border-black bg-white text-black font-black text-[11px] uppercase tracking-widest hover:bg-[#2250ce] hover:text-white hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all" type="button">Laboral</button>
+                  <button disabled={isView} className={`px-4 py-2 border-4 border-black bg-[#ff1e01] text-white font-black text-[11px] uppercase tracking-widest transition-all ${isView ? 'opacity-80 cursor-default' : 'hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'}`} type="button">Doméstica</button>
+                  <button disabled={isView} className={`px-4 py-2 border-4 border-black bg-white text-black font-black text-[11px] uppercase tracking-widest transition-all ${isView ? 'opacity-80 cursor-default' : 'hover:bg-[#2250ce] hover:text-white hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'}`} type="button">Laboral</button>
                 </div>
               </div>
 
@@ -117,8 +176,8 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                   {[1, 2, 3, 5, 8, 13, 21].map((point) => (
                     <div 
                       key={point} 
-                      onClick={() => setPoints(point)}
-                      className={`aspect-square flex items-center justify-center border-4 border-black font-black text-sm cursor-pointer hover:bg-[#fac901] hover:text-black transition-colors ${points === point ? 'bg-[#fac901] text-black border-dashed' : 'bg-white'}`}
+                      onClick={() => !isView && setPoints(point)}
+                      className={`aspect-square flex items-center justify-center border-4 border-black font-black text-sm transition-colors ${points === point ? 'bg-[#fac901] text-black border-dashed' : 'bg-white'} ${isView ? (points === point ? '' : 'opacity-50 cursor-default') : 'cursor-pointer hover:bg-[#fac901] hover:text-black'}`}
                     >
                       {point}
                     </div>
@@ -132,16 +191,18 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
               <label className="block font-black text-[10px] uppercase mb-4 tracking-[0.25em] text-black/50">Fecha y Hora</label>
               <div className="grid grid-cols-2 gap-4">
                 <input 
-                  className="p-3 font-label text-sm font-bold border-4 border-black focus:outline-none focus:border-[#2250ce] bg-white" 
+                  className={`p-3 font-label text-sm font-bold border-4 border-black focus:outline-none ${isView ? 'bg-black/5' : 'bg-white focus:border-[#2250ce]'}`} 
                   type="date"
                   value={dateStr}
                   onChange={(e) => setDateStr(e.target.value)}
+                  disabled={isView}
                 />
                 <input 
-                  className="p-3 font-label text-sm font-bold border-4 border-black focus:outline-none focus:border-[#2250ce] bg-white" 
+                  className={`p-3 font-label text-sm font-bold border-4 border-black focus:outline-none ${isView ? 'bg-black/5' : 'bg-white focus:border-[#2250ce]'}`} 
                   type="time"
                   value={timeStr}
                   onChange={(e) => setTimeStr(e.target.value)}
+                  disabled={isView}
                 />
               </div>
             </div>
@@ -154,9 +215,10 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                   <span className="material-symbols-outlined">person</span>
                 </div>
                 <select 
-                  className="flex-1 p-3 font-black uppercase text-xs tracking-[0.1em] bg-white border-4 border-black focus:outline-none focus:border-[#2250ce] cursor-pointer"
+                  className={`flex-1 p-3 font-black uppercase text-xs tracking-[0.1em] border-4 border-black focus:outline-none ${isView ? 'bg-black/5 appearance-none' : 'bg-white focus:border-[#2250ce] cursor-pointer'}`}
                   value={assignee}
                   onChange={(e) => setAssignee(e.target.value)}
+                  disabled={isView}
                 >
                   <option value="">(SIN ASIGNAR)</option>
                   <option value="JAIME LANNISTER">JAIME LANNISTER</option>
@@ -170,16 +232,32 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
             <div className="col-span-12 border-t-8 border-black flex flex-col md:flex-row">
               <div className="flex-1 p-6 bg-white hidden md:block">
                 <p className="font-label text-[10px] uppercase font-bold tracking-widest text-[#2250ce]">Sujeto al Código de Honor v.2.4</p>
-                {createTaskMutation.isError && <p className="text-red-500 font-bold text-xs mt-2 uppercase">Error al guardar tarea</p>}
+                {isError && <p className="text-red-500 font-bold text-xs mt-2 uppercase">Error al procesar la tarea</p>}
               </div>
-              <button 
-                type="submit"
-                disabled={createTaskMutation.isPending}
-                className="w-full md:w-auto px-12 py-6 bg-black text-[#fac901] font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#2250ce] hover:text-white transition-colors flex items-center justify-center gap-4 group disabled:opacity-50"
-              >
-                <span>{createTaskMutation.isPending ? 'ENVIANDO...' : 'GUARDAR'}</span>
-                {!createTaskMutation.isPending && <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">check_box</span>}
-              </button>
+
+              {mode === 'view' ? (
+                <button 
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setMode('edit');
+                  }}
+                  className="w-full md:w-auto px-12 py-6 bg-black text-white font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#ff1e01] transition-colors flex items-center justify-center gap-4 group"
+                >
+                  <span>EDITAR TAREA</span>
+                  <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">edit_square</span>
+                </button>
+              ) : (
+                <button 
+                  type="submit"
+                  disabled={isPending}
+                  className="w-full md:w-auto px-12 py-6 bg-black text-[#fac901] font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#2250ce] hover:text-white transition-colors flex items-center justify-center gap-4 group disabled:opacity-50"
+                >
+                  <span>{isPending ? 'ENVIANDO...' : (mode === 'edit' ? 'GUARDAR EDICIÓN' : 'GUARDAR')}</span>
+                  {!isPending && <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">check_box</span>}
+                </button>
+              )}
             </div>
           </form>
         </div>

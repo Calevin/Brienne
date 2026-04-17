@@ -1,8 +1,10 @@
 import TaskCard from "./TaskCard";
 import { useTasksQuery } from "../hooks/useTasks";
+import { useUIStore } from "../store/uiStore";
 
 export default function TaskFeed() {
   const { data: tasks, isLoading, isError } = useTasksQuery();
+  const openTaskModal = useUIStore(state => state.openTaskModal);
 
   if (isLoading) {
     return (
@@ -48,7 +50,8 @@ export default function TaskFeed() {
             category={`Pts: ${t.points}`} 
             categoryTheme={getRandomTheme(t.id!, index)}
             assignee={t.assignedTo?.[0] || 'N/A'}
-            hasRightBorder={index % 2 === 0} 
+            hasRightBorder={index % 2 === 0}
+            onClick={() => openTaskModal(t.id!)}
           />
         ))}
       </div>
@@ -67,6 +70,7 @@ export default function TaskFeed() {
              category={`Pts: ${t.points}`} 
              categoryTheme="regular"
             hasRightBorder={index % 2 === 0} 
+            onClick={() => openTaskModal(t.id!)}
           />
         ))}
       </div>

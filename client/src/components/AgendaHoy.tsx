@@ -1,7 +1,9 @@
 import { useTasksQuery } from "../hooks/useTasks";
+import { useUIStore } from "../store/uiStore";
 
 export default function AgendaHoy() {
   const { data: tasks, isLoading, isError } = useTasksQuery();
+  const openTaskModal = useUIStore(state => state.openTaskModal);
 
   if (isLoading) {
     return (
@@ -63,7 +65,8 @@ export default function AgendaHoy() {
       time: timeString,
       title: taskForSlot?.title || "--",
       bgClass,
-      isLast: i === 7
+      isLast: i === 7,
+      taskId: taskForSlot?.id
     };
   });
 
@@ -76,8 +79,12 @@ export default function AgendaHoy() {
       {/* Time Slots */}
       <div className="flex flex-col">
         {events.map((evt, i) => (
-          <div key={i} className={`flex ${evt.isLast ? 'border-b-neo-thick' : 'border-b-neo'} bg-white group`}>
-            <div className="w-20 p-4 border-r-neo font-label font-bold text-sm bg-white group-hover:bg-[#fac901] transition-colors">
+          <div 
+            key={i} 
+            className={`flex ${evt.isLast ? 'border-b-neo-thick' : 'border-b-neo'} bg-white group ${evt.taskId ? 'cursor-pointer hover:-translate-y-1 transition-transform' : ''}`}
+            onClick={() => evt.taskId && openTaskModal(evt.taskId)}
+          >
+            <div className={`w-20 p-4 border-r-neo font-label font-bold text-sm bg-white group-hover:bg-[#fac901] transition-colors`}>
               {evt.time}
             </div>
             <div className={`flex-1 p-4 font-bold uppercase flex items-center ${evt.bgClass}`}>

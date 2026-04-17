@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { create } from 'zustand';
+import { useUIStore } from './store/uiStore';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import AgendaHoy from './components/AgendaHoy';
@@ -7,24 +7,8 @@ import TaskFeed from './components/TaskFeed';
 import MiniCalendar from './components/MiniCalendar';
 import TaskModal from './components/TaskModal';
 
-// Ejemplo de estado global UI local con Zustand.
-// Minimalista y directo sin Context Providers.
-interface AppState {
-  sidebarOpen: boolean;
-  toggleSidebar: () => void;
-  isTaskModalOpen: boolean;
-  toggleTaskModal: () => void;
-}
-
-export const useAppStore = create<AppState>((set) => ({
-  sidebarOpen: false,
-  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-  isTaskModalOpen: false,
-  toggleTaskModal: () => set((state) => ({ isTaskModalOpen: !state.isTaskModalOpen })),
-}));
-
 function App() {
-  const { isTaskModalOpen, toggleTaskModal } = useAppStore();
+  const { isTaskModalOpen, closeTaskModal } = useUIStore();
 
   return (
     <>
@@ -49,7 +33,7 @@ function App() {
         </main>
       </div>
 
-      <TaskModal isOpen={isTaskModalOpen} onClose={toggleTaskModal} />
+      <TaskModal isOpen={isTaskModalOpen} onClose={closeTaskModal} />
     </>
   );
 }
