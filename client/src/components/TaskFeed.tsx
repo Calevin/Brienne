@@ -1,6 +1,7 @@
 import TaskCard from "./TaskCard";
 import { useTasksQuery } from "../hooks/useTasks";
 import { useUIStore } from "../store/uiStore";
+import { isToday, isBefore, startOfDay } from "date-fns";
 
 export default function TaskFeed() {
   const { data: tasks, isLoading, isError } = useTasksQuery();
@@ -25,8 +26,30 @@ export default function TaskFeed() {
     );
   }
 
-  const hoyTasks = tasks?.filter(t => !t.completed) || [];
-  const otrasTasks = tasks?.filter(t => t.completed) || []; // Simplemente las completadas abajo a fin de demo.
+  const allTasks = tasks || [];
+  const today = startOfDay(new Date());
+
+  const hoyTasks = allTasks.filter(t => !t.completed && t.dueDate && isToday(new Date(t.dueDate)));
+  
+  const otrasTasks = allTasks.filter(t => {
+    if (t.completed) return false;
+    if (!t.dueDate) return true; // sin fecha
+    const d = new Date(t.dueDate);
+    return !isToday(d) && !isBefore(d, today);
+  }).sort((a, b) => {
+    if (!a.dueDate && !b.dueDate) return 0;
+    if (!a.dueDate) return 1;
+    if (!b.dueDate) return -1;
+    return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+  });
+
+  const completadasTasks = allTasks.filter(t => t.completed);
+
+  const pasadasTasks = allTasks.filter(t => {
+    if (t.completed || !t.dueDate) return false;
+    const d = new Date(t.dueDate);
+    return !isToday(d) && isBefore(d, today);
+  });
 
   // Helper para asignar colores estéticos basados en index/puntos (fines puramente cosméticos como The React Way requiere neo-brutalismo)
   const getRandomTheme = (id: string, index: number) => {
@@ -56,14 +79,36 @@ export default function TaskFeed() {
         ))}
       </div>
 
-      {/* Sección Completadas/Otras */}
-      <div className="grid grid-cols-2">
+      {/* Sección Otras Tareas */}
+      {otrasTasks.length > 0 && (
+        <div className="grid grid-cols-2 border-t-8 border-black">
+          <div className="col-span-2 px-6 py-3 border-b-8 border-black flex justify-between items-center bg-[#2250ce]">
+            <h2 className="text-3xl font-black uppercase text-white">Otras tareas</h2>
+            <span className="font-label bg-white text-black px-4 py-1">{otrasTasks.length} TAREAS</span>
+          </div>
+          
+          {otrasTasks.map((t, index) => (
+            <TaskCard 
+              key={t.id!} 
+              title={t.title} 
+              category={`Pts: ${t.points}`} 
+              categoryTheme={getRandomTheme(t.id!, index)}
+              assignee={t.assignedTo?.[0] || 'N/A'}
+              hasRightBorder={index % 2 === 0}
+              onClick={() => openTaskModal(t.id!)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Sección Completadas */}
+      <div className="grid grid-cols-2 border-t-8 border-black">
         <div className="col-span-2 px-6 py-3 bg-black border-b-8 border-black flex justify-between items-center">
           <h2 className="text-3xl font-black uppercase text-white">Completadas</h2>
-          <span className="font-label text-black px-4 py-1 bg-[#fac901]">{otrasTasks.length} TAREAS</span>
+          <span className="font-label text-black px-4 py-1 bg-[#fac901]">{completadasTasks.length} TAREAS</span>
         </div>
 
-        {otrasTasks.map((t, index) => (
+        {completadasTasks.map((t, index) => (
           <TaskCard 
             key={t.id!} 
             title={t.title}
@@ -74,6 +119,28 @@ export default function TaskFeed() {
           />
         ))}
       </div>
+
+      {/* Sección Tareas Pasadas */}
+      {pasadasTasks.length > 0 && (
+        <div className="grid grid-cols-2 border-t-8 border-black">
+          <div className="col-span-2 px-6 py-3 border-b-8 border-black flex justify-between items-center bg-[#ff1e01]">
+            <h2 className="text-3xl font-black uppercase text-white">Tareas pasadas</h2>
+            <span className="font-label bg-white text-black px-4 py-1">{pasadasTasks.length} TAREAS</span>
+          </div>
+          
+          {pasadasTasks.map((t, index) => (
+            <TaskCard 
+              key={t.id!} 
+              title={t.title} 
+              category={`Pts: ${t.points}`} 
+              categoryTheme={getRandomTheme(t.id!, index)}
+              assignee={t.assignedTo?.[0] || 'N/A'}
+              hasRightBorder={index % 2 === 0}
+              onClick={() => openTaskModal(t.id!)}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Empty Aesthetic Block final del diseño */}
       <div className="h-64 bg-white border-b-8 border-black flex items-center justify-center opacity-20">
