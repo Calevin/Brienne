@@ -24,12 +24,13 @@ function App() {
   return (
     <>
       <Header />
-      {/* Aplicamos top-14 (mt-14 equivalente) dado que el Header es fixed y h-14 */}
-      <div className="flex bg-surface w-full h-[calc(100vh-56px)] mt-14 overflow-hidden">
+      {/* Usamos h-screen para que el viewport sea fijo y los hijos con overflow-y-auto funcionen. 
+          El pt-14 compensa el header fixed de altura h-14 (56px). */}
+      <div className="flex bg-surface w-full h-screen pt-14 border-t-8 border-black">
         <Sidebar />
         
-        {/* Main content placeholder basado en el Layout Mondrian */}
-        <main className="flex-1 grid grid-cols-12 h-full overflow-hidden">
+        {/* main container con h-full (que ahora es h-screen menos pt-14) */}
+        <main className="flex-1 grid grid-cols-12 h-full border-l-8 border-black overflow-hidden">
           
           <TaskFeed />
           

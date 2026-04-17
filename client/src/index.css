@@ -24,6 +24,8 @@
   --radius-xl: 0px;
   --radius-2xl: 0px;
   --radius-full: 0px;
+
+  --color-black: #000000;
 }
 
 @layer base {

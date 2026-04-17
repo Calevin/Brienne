@@ -3,7 +3,7 @@
  
 ## 1. Overview & Creative North Star
  
-### Creative North Star: "The Balanced Asymmetric"
+### Creative North Star: "The Balanced Symmetric"
 This design system moves beyond the predictable constraints of modern web grids. It is an exploration of **Neoplasticism**—the search for "universal harmony" through a reduction to essentials: vertical and horizontal lines, primary colors, and non-colors (white and black). 
  
 Unlike traditional "template" designs that rely on cards and soft shadows, this system treats the browser viewport as a canvas. We break the visual monotony through **Intentional Asymmetry**. By using a rigid, thick-stroke framework to contain varying rectangular proportions, we create a sense of "Artistic Functionality." Every element is both a piece of data and a component of a larger, museum-grade editorial composition.
@@ -31,7 +31,7 @@ The color palette is a strict adherence to the primary triad, grounded by high-c
  
 The typography scale is built on **Inter** for structural clarity and **Space Grotesk** for technical labeling. The hierarchy is designed to feel like a high-end art gallery catalog.
  
-- **Display (Lg/Md/Sm):** Set in **Inter**, Bold. Used sparingly for large, asymmetric headers. Letter spacing should be tight (-0.02em) to emphasize the blocky, architectural nature of the text.
+- **Display (Lg/Md/Sm):** Set in **Inter**, Bold. Used sparingly for large, symmetric headers. Letter spacing should be tight (-0.02em) to emphasize the blocky, architectural nature of the text.
 - **Headline & Title:** Inter, Medium. These act as the "Captions" for your grid cells. 
 - **Label (Md/Sm):** Set in **Space Grotesk**. This mono-leaning sans-serif provides a "metadeta" feel to lists and small callouts, contrasting against the editorial nature of the headlines.
 - **Body:** Inter, Regular. High line-height (1.6) is required to provide "breath" inside the rigid, black-bordered cells.
@@ -77,7 +77,7 @@ In a Neoplastic system, depth is not achieved through Z-index shadows, but throu
 ### Don't
 - **No Radii:** Never use `border-radius`. Every corner must be a sharp 90-degree angle.
 - **No Gradients:** Avoid any color transitions. Use solid `primary` or `primary_container` blocks to show depth.
-- **No Centering:** Avoid centering items within large cells. Push content to the top-left or bottom-right of a cell to lean into the asymmetric aesthetic.
+- **No Centering:** Avoid centering items within large cells. Push content to the top-left or bottom-right of a cell to lean into the symmetric aesthetic.
 - **No Standard Icons:** Use geometric, thick-stroke icons that match the `on_surface` weight. Avoid thin, wispy icon sets.
  
 ---
