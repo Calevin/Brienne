@@ -10,12 +10,21 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
   const [title, setTitle] = useState('');
   const [points, setPoints] = useState<number>(1);
   const [assignee, setAssignee] = useState<string>('');
+  const [dateStr, setDateStr] = useState('');
+  const [timeStr, setTimeStr] = useState('');
 
   const createTaskMutation = useCreateTaskMutation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+
+    let finalDueDate: Date | null = null;
+    if (dateStr) {
+       // Construir Date con la string combinada para soportar horas
+       const timeVal = timeStr || '00:00';
+       finalDueDate = new Date(`${dateStr}T${timeVal}:00`);
+    }
 
     createTaskMutation.mutate(
       {
@@ -24,7 +33,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
         ownerId: 'fixed-user-id-123',
         assignedTo: assignee ? [assignee] : [],
         recurrence: null,
-        dueDate: null,
+        dueDate: finalDueDate,
         completed: false
       },
       {
@@ -32,6 +41,8 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
           setTitle('');
           setPoints(1);
           setAssignee('');
+          setDateStr('');
+          setTimeStr('');
           onClose();
         }
       }
@@ -120,8 +131,18 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
             <div className="col-span-12 md:col-span-6 border-b-8 md:border-b-0 md:border-r-8 border-black p-8 bg-white">
               <label className="block font-black text-[10px] uppercase mb-4 tracking-[0.25em] text-black/50">Fecha y Hora</label>
               <div className="grid grid-cols-2 gap-4">
-                <input className="p-3 font-label text-sm font-bold border-4 border-black focus:outline-none focus:border-[#2250ce] bg-white cursor-not-allowed opacity-50" type="date" disabled title="Not implemented for MVP" />
-                <input className="p-3 font-label text-sm font-bold border-4 border-black focus:outline-none focus:border-[#2250ce] bg-white cursor-not-allowed opacity-50" type="time" disabled title="Not implemented for MVP" />
+                <input 
+                  className="p-3 font-label text-sm font-bold border-4 border-black focus:outline-none focus:border-[#2250ce] bg-white" 
+                  type="date"
+                  value={dateStr}
+                  onChange={(e) => setDateStr(e.target.value)}
+                />
+                <input 
+                  className="p-3 font-label text-sm font-bold border-4 border-black focus:outline-none focus:border-[#2250ce] bg-white" 
+                  type="time"
+                  value={timeStr}
+                  onChange={(e) => setTimeStr(e.target.value)}
+                />
               </div>
             </div>
 
