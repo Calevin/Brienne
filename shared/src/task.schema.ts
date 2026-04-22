@@ -18,6 +18,7 @@ export const TaskSchema = z.object({
   points: fibonacciPoints,
   assignedTo: z.array(z.string()), // Array de IDs de usuarios
   ownerId: z.string(),
+  detail: z.string().nullable().optional(), // Detalle breve opcional sobre la tarea
   recurrence: z.string().nullable(), // Null si no es recurrente
   dueDate: z.coerce.date().nullable(), // Zod transformará strings ISO a objetos Date si se envía desde JSON
   completed: z.boolean().default(false),

@@ -8,6 +8,7 @@ const TaskSchema = new Schema<Task>({
   points: { type: Number, required: true, enum: [0, 1, 2, 3, 5, 8, 13, 21] },
   assignedTo: { type: [String], default: [] },
   ownerId: { type: String, required: true },
+  detail: { type: String, default: null }, // Detalle breve opcional sobre la tarea
   recurrence: { type: String, default: null }, // Mongoose permite nulls para estos si no es required
   dueDate: { type: Date, default: null },
   completed: { type: Boolean, default: false }

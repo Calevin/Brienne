@@ -14,6 +14,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
   const [mode, setMode] = useState<'create' | 'view' | 'edit' | 'delete_confirm'>('create');
   
   const [title, setTitle] = useState('');
+  const [detail, setDetail] = useState('');
   const [points, setPoints] = useState<number>(1);
   const [assignee, setAssignee] = useState<string>('');
   const [dateStr, setDateStr] = useState('');
@@ -34,6 +35,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
         const task = tasks.find(t => t.id === selectedTaskId);
         if (task) {
           setTitle(task.title);
+          setDetail(task.detail ?? '');
           setPoints(task.points as number || 1);
           setAssignee(task.assignedTo?.[0] || '');
           if (task.dueDate) {
@@ -48,6 +50,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
         }
       } else {
         setTitle('');
+        setDetail('');
         setPoints(1);
         setAssignee('');
         setDateStr('');
@@ -71,6 +74,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
       createTaskMutation.mutate(
         {
           title,
+          detail: detail.trim() || null,
           points: points as any,
           ownerId: 'fixed-user-id-123',
           assignedTo: assignee ? [assignee] : [],
@@ -90,6 +94,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
           id: selectedTaskId,
           updates: {
              title,
+             detail: detail.trim() || null,
              points: points as any,
              assignedTo: assignee ? [assignee] : [],
              dueDate: finalDueDate,
@@ -188,13 +193,15 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
               />
             </div>
 
-            {/* Description Cell */}
+            {/* Detail Cell */}
             <div className="col-span-12 md:col-span-7 border-b-8 md:border-r-8 md:border-b-8 border-black p-8 bg-white">
-              <label className="block font-black text-[10px] uppercase mb-4 tracking-[0.25em] text-black/50">Descripción (Opcional)</label>
+              <label className="block font-black text-[10px] uppercase mb-4 tracking-[0.25em] text-black/50">Detalle (Opcional)</label>
               <textarea 
                 className={`w-full p-4 font-body text-base font-medium resize-none border-4 border-black focus:outline-none focus:ring-0 placeholder:text-black/20 ${isView ? 'bg-black/5' : 'bg-white focus:border-[#2250ce]'}`}
                 placeholder="DETALLES ESPECÍFICOS DEL JURAMENTO..." 
                 rows={6}
+                value={detail}
+                onChange={(e) => setDetail(e.target.value)}
                 disabled={isView}
               />
             </div>

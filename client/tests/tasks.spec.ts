@@ -14,7 +14,7 @@ test.describe('Task Management', () => {
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify([
-            { id: '1', title: 'Tarea Inicial MOCK', description: 'desc', points: 3, completed: false, dueDate: new Date().toISOString() }
+            { id: '1', title: 'Tarea Inicial MOCK', detail: null, points: 3, completed: false, dueDate: new Date().toISOString() }
           ])
         });
       } else {
@@ -31,6 +31,10 @@ test.describe('Task Management', () => {
     await page.route('*/**/api/tasks', async (route) => {
       if (route.request().method() === 'POST') {
         const payload = route.request().postDataJSON();
+
+        // Verificar que el payload incluye el campo detail
+        expect(payload).toHaveProperty('detail', 'Llamar al oftalmólogo');
+
         await route.fulfill({
           status: 201,
           contentType: 'application/json',
@@ -41,7 +45,7 @@ test.describe('Task Management', () => {
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify([
-            { id: 'new-id', title: 'Agendar cita médica', description: 'Llamar al oftalmólogo', points: 5, completed: false, dueDate: new Date().toISOString() }
+            { id: 'new-id', title: 'Agendar cita médica', detail: 'Llamar al oftalmólogo', points: 5, completed: false, dueDate: new Date().toISOString() }
           ])
         });
       } else {
@@ -90,7 +94,7 @@ test.describe('Task Management', () => {
         await route.fulfill({
           status: 200,
           body: JSON.stringify([
-            { id: '1', title: 'Tarea Editada', description: 'desc', points: 3, completed: false, dueDate: new Date().toISOString() }
+            { id: '1', title: 'Tarea Editada', detail: null, points: 3, completed: false, dueDate: new Date().toISOString() }
           ])
         });
       } else {
