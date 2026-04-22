@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useUIStore } from './store/uiStore';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';

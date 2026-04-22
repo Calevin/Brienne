@@ -112,13 +112,13 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
   const isError = createTaskMutation.isError || updateTaskMutation.isError || deleteTaskMutation.isError;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 md:p-12 bg-black/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-6 md:p-12 bg-black/80 backdrop-blur-sm">
       {/* MONDRIAN MODAL */}
       <div className="bg-white w-full max-w-5xl border-8 border-black shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] relative flex flex-col md:flex-row max-h-[90vh] overflow-y-auto overflow-x-hidden">
         
         {/* Left Header Section (Asymmetric Branding) */}
         <div className={`w-full md:w-20 border-b-8 md:border-b-0 md:border-r-8 border-black hidden md:flex items-center justify-center ${mode === 'create' ? 'bg-[#2250ce]' : (mode === 'edit' || mode === 'delete_confirm') ? 'bg-[#ff1e01]' : 'bg-black'}`}>
-          <div className="rotate-[-90deg] whitespace-nowrap text-white font-black text-2xl tracking-[0.6em] uppercase">
+          <div className="-rotate-90 whitespace-nowrap text-white font-black text-2xl tracking-[0.6em] uppercase">
              {mode === 'create' ? 'NUEVA TAREA' : mode === 'edit' ? 'EDICIÓN' : mode === 'delete_confirm' ? 'PELIGRO' : 'VISTA'}
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                   <span className="material-symbols-outlined">person</span>
                 </div>
                 <select 
-                  className={`flex-1 p-3 font-black uppercase text-xs tracking-[0.1em] border-4 border-black focus:outline-none ${isView ? 'bg-black/5 appearance-none' : 'bg-white focus:border-[#2250ce] cursor-pointer'}`}
+                  className={`flex-1 p-3 font-black uppercase text-xs tracking-widest border-4 border-black focus:outline-none ${isView ? 'bg-black/5 appearance-none' : 'bg-white focus:border-[#2250ce] cursor-pointer'}`}
                   value={assignee}
                   onChange={(e) => setAssignee(e.target.value)}
                   disabled={isView}
@@ -282,7 +282,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                   className="w-full md:w-auto px-8 py-6 bg-white text-[#ff1e01] font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#ff1e01] hover:text-white transition-colors flex items-center justify-center gap-4 group disabled:opacity-50"
                 >
                   <span>BORRAR</span>
-                  <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">delete</span>
+                  <span className="material-symbols-outlined font-bold! group-hover:rotate-12 transition-transform">delete</span>
                 </button>
               )}
 
@@ -300,7 +300,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                     className={`w-full md:w-auto px-10 py-6 text-white font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all flex items-center justify-center gap-4 group disabled:opacity-50 ${isCompleted ? 'bg-[#ff1e01]' : 'bg-[#2250ce]'}`}
                   >
                     <span>{isCompleted ? 'PENDIENTE' : 'HECHO'}</span>
-                    <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">{isCompleted ? 'settings_backup_restore' : 'task_alt'}</span>
+                    <span className="material-symbols-outlined font-bold! group-hover:rotate-12 transition-transform">{isCompleted ? 'settings_backup_restore' : 'task_alt'}</span>
                   </button>
                   <button 
                     type="button"
@@ -312,7 +312,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                     className="w-full md:w-auto px-12 py-6 bg-black text-white font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#ff1e01] transition-colors flex items-center justify-center gap-4 group"
                   >
                     <span>EDITAR</span>
-                    <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">edit_square</span>
+                    <span className="material-symbols-outlined font-bold! group-hover:rotate-12 transition-transform">edit_square</span>
                   </button>
                 </>
               ) : (
@@ -322,7 +322,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
                   className="w-full md:w-auto px-12 py-6 bg-black text-[#fac901] font-black text-xl uppercase tracking-[0.2em] border-t-8 md:border-t-0 md:border-l-8 border-black hover:bg-[#2250ce] hover:text-white transition-colors flex items-center justify-center gap-4 group disabled:opacity-50"
                 >
                   <span>{isPending ? 'ENVIANDO...' : (mode === 'edit' ? 'GUARDAR' : 'GUARDAR')}</span>
-                  {!isPending && <span className="material-symbols-outlined !font-bold group-hover:rotate-12 transition-transform">check_box</span>}
+                  {!isPending && <span className="material-symbols-outlined font-bold! group-hover:rotate-12 transition-transform">check_box</span>}
                 </button>
               )}
             </div>

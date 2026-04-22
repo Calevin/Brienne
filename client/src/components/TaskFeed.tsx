@@ -52,7 +52,7 @@ export default function TaskFeed() {
   });
 
   // Helper para asignar colores estéticos basados en index/puntos (fines puramente cosméticos como The React Way requiere neo-brutalismo)
-  const getRandomTheme = (id: string, index: number) => {
+  const getRandomTheme = (_id: string, index: number) => {
     const themes = ["critical", "personal", "yellow", "regular"];
     return themes[index % themes.length] as "critical" | "personal" | "yellow" | "regular";
   };
@@ -110,12 +110,13 @@ export default function TaskFeed() {
 
         {completadasTasks.map((t, index) => (
           <TaskCard 
-            key={t.id!} 
+            key={t.id!}
             title={t.title}
-             category={`Pts: ${t.points}`} 
-             categoryTheme="regular"
-            hasRightBorder={index % 2 === 0} 
-            onClick={() => openTaskModal(t.id!)}
+            category={`Pts: ${t.points}`}
+            categoryTheme="regular"
+            hasRightBorder={index % 2 === 0}
+            onClick={() => openTaskModal(t.id!)} 
+            assignee={""} 
           />
         ))}
       </div>

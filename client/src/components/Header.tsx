@@ -2,7 +2,7 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 w-full z-50 flex bg-white border-b-8 border-black h-14">
       {/* Sidebar Alignment (Left Section) */}
-      <div className="w-16 flex-shrink-0 text-3xl font-black text-black border-r-neo-thick flex items-center justify-center bg-[#fac901]">
+      <div className="w-16 shrink-0 text-3xl font-black text-black border-r-neo-thick flex items-center justify-center bg-[#fac901]">
         B
       </div>
 
