@@ -1,74 +1,53 @@
 import { Request, Response } from 'express';
-import { TaskModel } from '../models/Task';
+import { TaskService } from '../services/task.service';
 import { CreateTaskDTO } from '@brienne/shared';
 
-// Función para mapear documento Mongoose al tipo compartido Task
-function mapToTaskResponse(doc: any) {
-  const { _id, __v, ...rest } = doc;
-  return {
-    id: _id.toString(),
-    ...rest
-  };
-}
-
-export const getTasks = async (req: Request, res: Response) => {
+export const getTasks = async (_req: Request, res: Response): Promise<void> => {
   try {
-    const tasks = await TaskModel.find().lean();
-    res.json(tasks.map(mapToTaskResponse));
+    const tasks = await TaskService.findAll();
+    res.json(tasks);
   } catch (error) {
     console.error('Error fetching tasks:', error);
     res.status(500).json({ error: 'Error fetching tasks' });
   }
 };
 
-export const createTask = async (req: Request, res: Response) => {
+export const createTask = async (req: Request, res: Response): Promise<void> => {
   try {
     const taskData: CreateTaskDTO = req.body;
-    
-    // Fuerza el owner_id temporal.
-    if (!taskData.ownerId) {
-      taskData.ownerId = 'fixed-user-id-123';
-    }
-
-    const newTask = new TaskModel(taskData);
-    await newTask.save();
-    
-    res.status(201).json(mapToTaskResponse(newTask.toObject()));
+    const task = await TaskService.create(taskData);
+    res.status(201).json(task);
   } catch (error) {
     console.error('Error creating task:', error);
     res.status(400).json({ error: 'Error creating task' });
   }
 };
 
-export const updateTask = async (req: Request, res: Response) => {
+export const updateTask = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const taskData = req.body;
-    
-    const updatedTask = await TaskModel.findByIdAndUpdate(
-      id,
-      taskData,
-      { new: true } // Devuelve el doc nuevo modificado
-    ).lean();
+    const task = await TaskService.update(id, req.body);
 
-    if (!updatedTask) {
-      return res.status(404).json({ error: 'Task not found' });
+    if (!task) {
+      res.status(404).json({ error: 'Task not found' });
+      return;
     }
 
-    res.json(mapToTaskResponse(updatedTask));
+    res.json(task);
   } catch (error) {
     console.error('Error updating task:', error);
     res.status(400).json({ error: 'Error updating task' });
   }
 };
 
-export const deleteTask = async (req: Request, res: Response) => {
+export const deleteTask = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const deletedTask = await TaskModel.findByIdAndDelete(id).lean();
+    const deleted = await TaskService.remove(id);
 
-    if (!deletedTask) {
-      return res.status(404).json({ error: 'Task not found' });
+    if (!deleted) {
+      res.status(404).json({ error: 'Task not found' });
+      return;
     }
 
     res.status(204).send();
