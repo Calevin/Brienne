@@ -46,7 +46,7 @@ export default function TaskModal({ isOpen, onClose }: TaskModalProps) {
              setDateStr('');
              setTimeStr('');
           }
-          if (mode === 'create') setMode('view');
+          setMode('view');
         }
       } else {
         setTitle('');
