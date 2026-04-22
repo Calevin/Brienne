@@ -105,30 +105,25 @@ router.patch('/:id', updateTask);
 
 ---
 
-### 5. Backend: Controlador y Lógica
+### 5. Backend: Controlador
 
 **`server/src/controllers/task.controller.ts`** (clase propia)
 
-Extrae el `id` y los datos del cuerpo de la petición. Utiliza el modelo de Mongoose para aplicar los cambios en un solo paso.
+Responsabilidad exclusiva: extraer `id` y el cuerpo de la request, y serializar la response.
+No importa `TaskModel`. Delega al servicio.
 
 ```ts
-export const updateTask = async (req: Request, res: Response) => {
+export const updateTask = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const taskData = req.body; // ej: { completed: true }
-    
-    // findByIdAndUpdate es de Mongoose (dependencia externa)
-    const updatedTask = await TaskModel.findByIdAndUpdate(
-      id,
-      taskData,
-      { new: true } // Retorna el documento actualizado, no el anterior
-    ).lean();
+    const task = await TaskService.update(id, req.body); // Ver paso 6
 
-    if (!updatedTask) {
-      return res.status(404).json({ error: 'Task not found' });
+    if (!task) {
+      res.status(404).json({ error: 'Task not found' });
+      return;
     }
 
-    res.json(mapToTaskResponse(updatedTask)); // Normaliza _id a id
+    res.json(task);
   } catch (error) {
     res.status(400).json({ error: 'Error updating task' });
   }
@@ -137,11 +132,33 @@ export const updateTask = async (req: Request, res: Response) => {
 
 ---
 
-### 6. Backend: Persistencia
+### 6. Backend: Servicio
+
+**`server/src/services/task.service.ts`** (clase propia)
+
+Ejecuta la actualización en MongoDB y normaliza el documento resultado al tipo `Task`.
+Devuelve `null` si el documento no existe, lo que permite al controller responder con 404.
+
+```ts
+export const TaskService = {
+  async update(id: string, data: Partial<Task>): Promise<Task | null> {
+    // findByIdAndUpdate con { new: true } devuelve el documento ya modificado.
+    // .lean() lo convierte en objeto JS plano para mejor rendimiento.
+    const doc = await TaskModel.findByIdAndUpdate(id, data, { new: true }).lean();
+    if (!doc) return null;
+    return toTaskResponse(doc); // Normaliza _id → id, elimina __v
+  },
+};
+```
+
+---
+
+### 7. Backend: Persistencia
 
 **`server/src/models/Task.ts`** (clase propia - Mongoose: dependencia externa)
 
-El `TaskModel` interactúa con MongoDB. El esquema garantiza que el campo `completed` sea booleano y permite la actualización parcial sin afectar otros campos como la fecha o los puntos.
+El `TaskModel` interactúa con MongoDB. El esquema garantiza que `completed` sea booleano
+y permite actualizaciones parciales sin afectar campos no enviados. Es consumido únicamente por `TaskService`.
 
 ```ts
 export const TaskModel = mongoose.model<Task>('Task', TaskSchema);
@@ -149,7 +166,7 @@ export const TaskModel = mongoose.model<Task>('Task', TaskSchema);
 
 ---
 
-### 7. Cierre del Ciclo (Actualización UI)
+### 8. Cierre del Ciclo (Actualización UI)
 
 Una vez que el backend confirma el cambio (Status 200 OK):
 

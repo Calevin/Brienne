@@ -140,22 +140,19 @@ router.post('/', createTask);
 
 ---
 
-### 8. Backend: Controlador y Lógica
+### 8. Backend: Controlador
 
 **`server/src/controllers/task.controller.ts`** (clase propia)
 
-Valida/procesa los datos y utiliza el modelo de Mongoose para persistir.
+Responsabilidad exclusiva: parsear la request HTTP y serializar la response.
+No importa `TaskModel`. Delega la lógica de negocio al servicio.
 
 ```ts
-export const createTask = async (req: Request, res: Response) => {
+export const createTask = async (req: Request, res: Response): Promise<void> => {
   try {
     const taskData: CreateTaskDTO = req.body;
-    // ... lógica de negocio (ej: asignar ownerId por defecto)
-    const newTask = new TaskModel(taskData);
-    await newTask.save();
-    
-    // Devuelve la tarea creada normalizada (mapToTaskResponse)
-    res.status(201).json(mapToTaskResponse(newTask.toObject()));
+    const task = await TaskService.create(taskData); // Ver paso 9
+    res.status(201).json(task);
   } catch (error) {
     res.status(400).json({ error: 'Error creating task' });
   }
@@ -164,11 +161,33 @@ export const createTask = async (req: Request, res: Response) => {
 
 ---
 
-### 9. Backend: Persistencia
+### 9. Backend: Servicio
+
+**`server/src/services/task.service.ts`** (clase propia)
+
+Encapsula la lógica de negocio (asignación de `ownerId` por defecto) y el acceso a datos.
+También convierte el documento Mongoose al tipo `Task` de `@brienne/shared`.
+
+```ts
+export const TaskService = {
+  async create(data: CreateTaskDTO): Promise<Task> {
+    if (!data.ownerId) {
+      data.ownerId = 'fixed-user-id-123'; // ownerId temporal hasta implementar auth
+    }
+    const doc = new TaskModel(data);
+    await doc.save();
+    return toTaskResponse(doc.toObject()); // Normaliza _id → id
+  },
+};
+```
+
+---
+
+### 10. Backend: Persistencia
 
 **`server/src/models/Task.ts`** (clase propia - Mongoose: dependencia externa)
 
-El `TaskModel` interactúa con MongoDB usando el esquema definido. El esquema está tipado con el contrato de `@brienne/shared`.
+El `TaskModel` interactúa con MongoDB. Es consumido únicamente por `TaskService`.
 
 ```ts
 const TaskSchema = new Schema<Task>({
@@ -182,7 +201,7 @@ export const TaskModel = mongoose.model<Task>('Task', TaskSchema);
 
 ---
 
-### 10. Cierre del Ciclo (Actualización UI)
+### 11. Cierre del Ciclo (Actualización UI)
 
 Una vez que el servidor responde con éxito (Status 201):
 

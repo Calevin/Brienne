@@ -112,21 +112,22 @@ router.delete('/:id', deleteTask);
 
 ---
 
-### 6. Backend: Controlador y Lógica
+### 6. Backend: Controlador
 
 **`server/src/controllers/task.controller.ts`** (clase propia)
 
-Extrae el `id` de los parámetros de la ruta y utiliza el modelo para ejecutar la eliminación física en la base de datos.
+Responsabilidad exclusiva: extraer el `id` de los parámetros y serializar la response.
+No importa `TaskModel`. Delega la operación al servicio.
 
 ```ts
-export const deleteTask = async (req: Request, res: Response) => {
+export const deleteTask = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    // findByIdAndDelete es un método de Mongoose
-    const deletedTask = await TaskModel.findByIdAndDelete(id).lean();
+    const deleted = await TaskService.remove(id); // Ver paso 7
 
-    if (!deletedTask) {
-      return res.status(404).json({ error: 'Task not found' });
+    if (!deleted) {
+      res.status(404).json({ error: 'Task not found' });
+      return;
     }
 
     // Status 204 No Content: éxito sin cuerpo de respuesta
@@ -139,11 +140,30 @@ export const deleteTask = async (req: Request, res: Response) => {
 
 ---
 
-### 7. Backend: Persistencia
+### 7. Backend: Servicio
+
+**`server/src/services/task.service.ts`** (clase propia)
+
+Ejecuta la eliminación en MongoDB y devuelve un booleano indicando si el documento existía.
+El controller usa ese resultado para decidir el status code de la respuesta.
+
+```ts
+export const TaskService = {
+  async remove(id: string): Promise<boolean> {
+    // findByIdAndDelete es un método de Mongoose (dependencia externa)
+    const doc = await TaskModel.findByIdAndDelete(id).lean();
+    return doc !== null;
+  },
+};
+```
+
+---
+
+### 8. Backend: Persistencia
 
 **`server/src/models/Task.ts`** (clase propia - Mongoose: dependencia externa)
 
-El `TaskModel` interactúa con MongoDB. Aunque la operación de borrado es directa, el modelo garantiza que estamos operando sobre la colección correcta definida por el esquema.
+El `TaskModel` interactúa con MongoDB. Es consumido únicamente por `TaskService`.
 
 ```ts
 export const TaskModel = mongoose.model<Task>('Task', TaskSchema);
@@ -151,7 +171,7 @@ export const TaskModel = mongoose.model<Task>('Task', TaskSchema);
 
 ---
 
-### 8. Cierre del Ciclo (Actualización UI)
+### 9. Cierre del Ciclo (Actualización UI)
 
 Una vez que el servidor responde con éxito (Status 204):
 

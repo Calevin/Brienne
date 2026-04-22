@@ -134,13 +134,14 @@ export default router;
 
 **6. `server/src/controllers/task.controller.ts`** (clase propia)
 
-Maneja la lógica del endpoint GET. `Request` y `Response` son de Express (dependencia externa):
+Responsabilidad exclusiva: parsear la request y serializar la response.
+No importa `TaskModel` ni conoce detalles de Mongoose; delega al servicio.
 
 ```ts
-export const getTasks = async (req: Request, res: Response) => {
+export const getTasks = async (_req: Request, res: Response): Promise<void> => {
   try {
-    const tasks = await TaskModel.find().lean(); // TaskModel: ver paso 7
-    res.json(tasks.map(mapToTaskResponse));      // mapToTaskResponse: ver nota abajo
+    const tasks = await TaskService.findAll(); // Ver paso 7
+    res.json(tasks);
   } catch (error) {
     console.error('Error fetching tasks:', error);
     res.status(500).json({ error: 'Error fetching tasks' });
@@ -148,41 +149,50 @@ export const getTasks = async (req: Request, res: Response) => {
 };
 ```
 
-**`mapToTaskResponse`** (función propia del controller):
+---
+
+**7. `server/src/services/task.service.ts`** (clase propia)
+
+Capa de servicio que centraliza el acceso a datos y la transformación de documentos Mongoose.
+`TaskModel` se usa exclusivamente aquí.
 
 ```ts
-function mapToTaskResponse(doc: any) {
+// toTaskResponse normaliza el documento Mongoose al tipo Task de @brienne/shared:
+// elimina _id y __v, y expone 'id' como string.
+function toTaskResponse(doc: any): Task {
   const { _id, __v, ...rest } = doc;
-  return {
-    id: _id.toString(), // Convierte ObjectId de MongoDB al string 'id' del tipo Task
-    ...rest
-  };
+  return { id: _id.toString(), ...rest };
 }
-```
 
-Mongoose devuelve documentos con `_id` (ObjectId) y `__v` (version key).
-Esta función los normaliza al contrato del tipo `Task` de `@brienne/shared`,
-que usa `id` como string. Se usa `.lean()` para obtener objetos JS planos
-en lugar de instancias de documento Mongoose, lo que mejora el rendimiento.
+export const TaskService = {
+  async findAll(): Promise<Task[]> {
+    // .lean() devuelve objetos JS planos en lugar de instancias de documento,
+    // lo que mejora el rendimiento al evitar la sobrecarga de Mongoose.
+    const docs = await TaskModel.find().lean();
+    return docs.map(toTaskResponse);
+  },
+  // ... create, update, remove
+};
+```
 
 ---
 
-**7. `server/src/models/Task.ts`** (clase propia)
+**8. `server/src/models/Task.ts`** (clase propia - Mongoose: dependencia externa)
 
-Define el schema de Mongoose y exporta el modelo:
+Define el schema de Mongoose y exporta el modelo. Es consumido únicamente por `TaskService`:
 
 ```ts
 import mongoose, { Schema } from 'mongoose'; // mongoose: dependencia externa
 import { Task } from '@brienne/shared';       // Task: tipo del paquete compartido
 
-// TaskSchema define la estructura del documento en MongoDB.
 // Al tiparlo con <Task>, TypeScript valida que los campos del schema
-// sean compatibles con el tipo compartido.
+// sean compatibles con el contrato compartido.
 const TaskSchema = new Schema<Task>({
   title:      { type: String,  required: true },
   points:     { type: Number,  required: true, enum: [0, 1, 2, 3, 5, 8, 13, 21] },
   assignedTo: { type: [String], default: [] },
   ownerId:    { type: String,  required: true },
+  detail:     { type: String,  default: null },
   recurrence: { type: String,  default: null },
   dueDate:    { type: Date,    default: null },
   completed:  { type: Boolean, default: false }
@@ -197,7 +207,7 @@ export const TaskModel = mongoose.model<Task>('Task', TaskSchema);
 
 ### Frontend (Vuelta)
 
-**8. `client/src/components/TaskFeed.tsx`** (donde comenzó todo)
+**9. `client/src/components/TaskFeed.tsx`** (donde comenzó todo)
 
 Con los datos ya disponibles, el componente los filtra en cuatro secciones.
 `isToday`, `isBefore` y `startOfDay` son de `date-fns` (dependencia externa):
