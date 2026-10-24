@@ -3,6 +3,10 @@
     "001_saneamiento_linter_cliente": {
       "spec_hash": "10b97521ef01a34157b795dd96f038b0ae37ef2c2fa4220498d9a0ea5495bf49",
       "verifier_hash": "affa8ec67739174af6ea27ad68d66333b8ff5364686cd2d2eaeae11f8063d115"
+    },
+    "002_integracion_vitest_backend": {
+      "spec_hash": "834a1940a1b05ab0825bf2a929959913eb067aa9daddd488017d37b0e1530aa6",
+      "verifier_hash": "79c37c6532dd64729308f5d41818df0815553e088c8b28bd413f97a824262217"
     }
   }
 }

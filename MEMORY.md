@@ -7,9 +7,9 @@
 > - **Invariante del Agente:** Antes de proponer un diseño en `seb-planificador` o escribir código, verifica las secciones 2 y 3 para no reintentar enfoques fallidos.
 
 ## 1. Estado Actual del Proyecto
-- **Fase SDD activa:** Fase 0 completada (`docs/constitution.md` generada y ratificada). Listo para Fase 1 (`seb-especificador`).
-- **Última Spec verificada:** Ninguna.
-- **Estado de la suite de verificación:** Build funcional (`direnv exec . pnpm -r build`). Linter reporta 5 errores previos en `client`. Backend pendiente de suite `vitest`.
+- **Fase SDD activa:** Fase 4 completada para Spec 002. Listo para Fase 5 (`seb-verificador`).
+- **Última Spec verificada:** `001_saneamiento_linter_cliente`.
+- **Estado de la suite de verificación:** Build global funcional (`direnv exec . pnpm -r build`). Workspace `server` cuenta con suite completa `vitest` y cobertura del 100% líneas / 82.14% ramas en `TaskService`.
 
 ## 2. Callejones sin Salida y Enfoques Descartados (NO REINTENTAR)
 - *Formato: `[Fecha] [Tarea/Spec] Qué se intentó -> Por qué falló -> Alternativa adoptada`*
@@ -20,6 +20,7 @@
 - `[NixOS / Shell] Herramientas globales (node, pnpm, playwright) residen en el flake devShell -> Comandos automáticos y de verificación deben prefijarse con 'direnv exec .'`
 - `[React 19 / ESLint] Regla react-hooks/set-state-in-effect activa en eslint v9 -> TaskModal.tsx tiene llamadas síncronas a setState dentro de useEffect que disparan error de linter`
 - `[Playwright / Reporter] Reporter 'html' por defecto abre navegador de forma interactiva y bloqueante -> Configurar con { open: 'never' } para ejecuciones no interactivas deterministas`
+- `[Vitest / Monorepo CJS] Configuración de Vitest en workspaces CJS requiere extensión .mts (vitest.config.mts) para evitar advertencias de incompatibilidad nativa ESM/CJS en Vite.`
 
 ## 4. Riesgos Conocidos y Deuda Técnica Activa
 - *Formato: `[ID-Spec] Descripción del riesgo -> Condición de mitigación`*
