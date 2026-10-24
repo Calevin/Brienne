@@ -56,9 +56,7 @@ test.describe('Task Management', () => {
     // Clic en botón de "Nueva Tarea" (icono add_box en Sidebar)
     await page.getByText('add_box').click();
 
-    // El modal de tarea se debería abrir (por ejemplo esperamos a que un form o heading esté visible)
-    const modalHeading = page.getByRole('heading', { name: /Crear Nueva Tarea|Sin título/i });
-    // Assuming it triggers the TaskModal directly with an empty state
+    // El modal de tarea se debería abrir
     await page.getByPlaceholder(/EJ: VIGILANCIA DE LOS PUERTOS/i).fill('Agendar cita médica');
     await page.locator('textarea').fill('Llamar al oftalmólogo');
 
@@ -215,12 +213,7 @@ test.describe('Section Visualizations', () => {
     await page.goto('/');
 
     // Then
-    // Verificar cada sección 
-    const sectionHoy = page.locator('div:has-text("Hoy") > ..'); // Parent of header
-    // It might be a sibling relationship depending on DOM, we can just look for headers and the next elements.
-
-    // Based on DOM, each section has a header, then maps components adjacent to it inside a grid.
-    // It's safer to use a locator that finds the container block OR just verify they are present in the DOM in general
+    // Basado en el DOM, cada sección posee una cabecera y renderiza componentes adyacentes
     await expect(page.getByText('Tarea de Hoy').first()).toBeVisible();
     await expect(page.getByText('Tarea Futura').first()).toBeVisible();
     await expect(page.getByText('Tarea Completada').first()).toBeVisible();

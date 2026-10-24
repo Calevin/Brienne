@@ -19,6 +19,7 @@
 - *Formato: `[Componente] Restricción detectada -> Impacto en tests o compilación`*
 - `[NixOS / Shell] Herramientas globales (node, pnpm, playwright) residen en el flake devShell -> Comandos automáticos y de verificación deben prefijarse con 'direnv exec .'`
 - `[React 19 / ESLint] Regla react-hooks/set-state-in-effect activa en eslint v9 -> TaskModal.tsx tiene llamadas síncronas a setState dentro de useEffect que disparan error de linter`
+- `[Playwright / Reporter] Reporter 'html' por defecto abre navegador de forma interactiva y bloqueante -> Configurar con { open: 'never' } para ejecuciones no interactivas deterministas`
 
 ## 4. Riesgos Conocidos y Deuda Técnica Activa
 - *Formato: `[ID-Spec] Descripción del riesgo -> Condición de mitigación`*
