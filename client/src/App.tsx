@@ -23,7 +23,7 @@ function App() {
           <TaskFeed />
           
           {/* Right Panel: Calendar & Agenda (4 columns) */}
-          <aside className="col-span-4 bg-surface-container flex flex-col overflow-y-auto border-l-8 border-black">
+          <aside className="col-span-4 bg-surface-container flex flex-col h-full overflow-hidden border-l-8 border-black">
             {/* Widget Mini-Calendario funcional  */}
             <MiniCalendar />
             
