@@ -11,7 +11,9 @@ const TaskSchema = new Schema<Task>({
   detail: { type: String, default: null }, // Detalle breve opcional sobre la tarea
   recurrence: { type: String, default: null }, // Mongoose permite nulls para estos si no es required
   dueDate: { type: Date, default: null },
-  completed: { type: Boolean, default: false }
+  completed: { type: Boolean, default: false },
+  // Relacion opcional con una categoria global; null indica tarea sin categoria (spec 005)
+  categoryId: { type: String, default: null }
 }, {
   timestamps: true // Añade createdAt y updatedAt automáticamente
 });

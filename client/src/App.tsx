@@ -5,9 +5,10 @@ import AgendaHoy from './components/AgendaHoy';
 import TaskFeed from './components/TaskFeed';
 import MiniCalendar from './components/MiniCalendar';
 import TaskModal from './components/TaskModal';
+import CategoryModal from './components/CategoryModal';
 
 function App() {
-  const { isTaskModalOpen, closeTaskModal } = useUIStore();
+  const { isTaskModalOpen, closeTaskModal, isCategoryModalOpen, closeCategoryModal } = useUIStore();
 
   return (
     <>
@@ -33,6 +34,7 @@ function App() {
       </div>
 
       <TaskModal isOpen={isTaskModalOpen} onClose={closeTaskModal} />
+      <CategoryModal isOpen={isCategoryModalOpen} onClose={closeCategoryModal} />
     </>
   );
 }

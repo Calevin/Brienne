@@ -9,6 +9,11 @@ export interface UIState {
   openTaskModal: (taskId?: string) => void;
   closeTaskModal: () => void;
 
+  // Modal de gestion de categorias (spec 005)
+  isCategoryModalOpen: boolean;
+  openCategoryModal: () => void;
+  closeCategoryModal: () => void;
+
   // Estado temporal compartido (Spec 003)
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
@@ -25,6 +30,9 @@ export const useUIStore = create<UIState>((set) => ({
   selectedTaskId: null,
   openTaskModal: (taskId?: string) => set({ isTaskModalOpen: true, selectedTaskId: taskId || null }),
   closeTaskModal: () => set({ isTaskModalOpen: false, selectedTaskId: null }),
+  isCategoryModalOpen: false,
+  openCategoryModal: () => set({ isCategoryModalOpen: true }),
+  closeCategoryModal: () => set({ isCategoryModalOpen: false }),
 
   // Inicialización en la fecha actual
   selectedDate: new Date(),

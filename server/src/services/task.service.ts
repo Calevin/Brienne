@@ -1,10 +1,27 @@
 import { TaskModel } from '../models/Task';
-import { Task, CreateTaskDTO, TaskSchema } from '@brienne/shared';
+import { CategoryModel } from '../models/Category';
+import { Task, CreateTaskDTO, TaskSchema, CATEGORY_ERRORS } from '@brienne/shared';
+import { DomainError } from './errors';
 
 const DEFAULT_OWNER_ID = 'fixed-user-id-123';
 
 // Esquema de validacion de creacion en la capa de servicio
 const CreateTaskServiceSchema = TaskSchema.omit({ id: true });
+
+// RF-10: la categoria referenciada debe existir; null o ausente siempre es valido
+async function assertCategoryExists(categoryId: string | null | undefined): Promise<void> {
+  if (categoryId === null || categoryId === undefined) return;
+  try {
+    const exists = await CategoryModel.exists({ _id: categoryId });
+    if (!exists) {
+      throw new DomainError(CATEGORY_ERRORS.taskCategoryNotFound, 'VALIDATION');
+    }
+  } catch (error) {
+    // Un identificador con formato invalido tambien se considera categoria inexistente
+    if (error instanceof DomainError) throw error;
+    throw new DomainError(CATEGORY_ERRORS.taskCategoryNotFound, 'VALIDATION');
+  }
+}
 
 // Mapea un documento Mongoose al tipo compartido Task,
 // eliminando los campos internos de Mongoose (_id, __v).
@@ -33,6 +50,7 @@ export const TaskService = {
     };
 
     const validatedData = CreateTaskServiceSchema.parse(payload);
+    await assertCategoryExists(validatedData.categoryId);
     const doc = new TaskModel(validatedData);
     await doc.save();
     return toTaskResponse(doc.toObject ? doc.toObject() : doc);
@@ -44,6 +62,9 @@ export const TaskService = {
         data.title = typeof data.title === 'string' ? data.title.trim() : data.title;
       }
       TaskSchema.partial().parse(data);
+      if (data.categoryId !== undefined) {
+        await assertCategoryExists(data.categoryId);
+      }
     }
     const doc = await TaskModel.findByIdAndUpdate(id, data, { new: true }).lean();
     if (!doc) return null;

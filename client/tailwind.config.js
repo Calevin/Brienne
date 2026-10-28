@@ -13,7 +13,7 @@ export default {
         primary: "#bc0002",
         "primary-container": "#e22619",
         secondary: "#2c4bdb",
-        tertiary: "#715d00",
+        tertiary: "#fac901",
         "surface-container": "#eeeeee",
       },
       fontFamily: {

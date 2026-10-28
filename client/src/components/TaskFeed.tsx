@@ -1,11 +1,25 @@
+import { useMemo } from "react";
 import TaskCard from "./TaskCard";
 import { useTasksQuery } from "../hooks/useTasks";
+import { useCategoriesQuery } from "../hooks/useCategories";
 import { useUIStore } from "../store/uiStore";
 import { isToday, isBefore, startOfDay } from "date-fns";
 
 export default function TaskFeed() {
   const { data: tasks, isLoading, isError } = useTasksQuery();
+  const { data: categories } = useCategoriesQuery();
   const openTaskModal = useUIStore(state => state.openTaskModal);
+
+  // Mapeo indexado por ID de categoria para consulta en O(1)
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, { name: string; color: string }>();
+    categories?.forEach((c) => {
+      if (c.id) {
+        map.set(c.id, { name: c.nombre, color: c.color });
+      }
+    });
+    return map;
+  }, [categories]);
 
   if (isLoading) {
     return (
@@ -70,7 +84,8 @@ export default function TaskFeed() {
           <TaskCard 
             key={t.id!} 
             title={t.title} 
-            category={`Pts: ${t.points}`} 
+            points={t.points}
+            categoryTag={t.categoryId ? categoryMap.get(t.categoryId) ?? null : null}
             categoryTheme={getRandomTheme(t.id!, index)}
             assignee={t.assignedTo?.[0] || 'N/A'}
             hasRightBorder={index % 2 === 0}
@@ -91,7 +106,8 @@ export default function TaskFeed() {
             <TaskCard 
               key={t.id!} 
               title={t.title} 
-              category={`Pts: ${t.points}`} 
+              points={t.points}
+              categoryTag={t.categoryId ? categoryMap.get(t.categoryId) ?? null : null}
               categoryTheme={getRandomTheme(t.id!, index)}
               assignee={t.assignedTo?.[0] || 'N/A'}
               hasRightBorder={index % 2 === 0}
@@ -112,7 +128,8 @@ export default function TaskFeed() {
           <TaskCard 
             key={t.id!}
             title={t.title}
-            category={`Pts: ${t.points}`}
+            points={t.points}
+            categoryTag={t.categoryId ? categoryMap.get(t.categoryId) ?? null : null}
             categoryTheme="regular"
             hasRightBorder={index % 2 === 0}
             onClick={() => openTaskModal(t.id!)} 
@@ -133,7 +150,8 @@ export default function TaskFeed() {
             <TaskCard 
               key={t.id!} 
               title={t.title} 
-              category={`Pts: ${t.points}`} 
+              points={t.points}
+              categoryTag={t.categoryId ? categoryMap.get(t.categoryId) ?? null : null}
               categoryTheme={getRandomTheme(t.id!, index)}
               assignee={t.assignedTo?.[0] || 'N/A'}
               hasRightBorder={index % 2 === 0}

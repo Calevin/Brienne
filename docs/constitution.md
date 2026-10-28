@@ -64,7 +64,7 @@
     - Cero bordes redondeados (`border-radius: 0` absoluto; prohibido `rounded-*` en Tailwind).
     - Separadores con peso estructural: bordes negros gruesos (4px a 8px). Prohibido el uso de divisores estándar de 1px.
     - Cero sombras difusas tradicionales (`box-shadow` suaves prohibidas; usar sombras duras rectangulares de desplazamiento sólido o superposiciones planas).
-    - Paleta cromática primaria estricta: Rojo (`#bc0002`), Azul (`#2c4bdb`), Amarillo (`#715d00`), Blanco puro y Negro.
+    - Paleta cromática primaria estricta: Rojo (`#bc0002`), Azul (`#2c4bdb`), Amarillo (`#fac901`), Blanco puro y Negro.
     - Tipografía: Inter para jerarquía estructural y Space Grotesk para etiquetas/metadatos técnicos.
 - **Convenciones de Nomenclatura e Idioma:**
   - Todo el código fuente (nombres de variables, funciones, clases, archivos, interfaces, commits y rutas) debe estar en **inglés**.

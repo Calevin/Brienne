@@ -2,6 +2,7 @@ import { useUIStore } from '../store/uiStore';
 
 export default function Sidebar() {
   const openTaskModal = useUIStore((state) => state.openTaskModal);
+  const openCategoryModal = useUIStore((state) => state.openCategoryModal);
 
   return (
     <aside className="border-r-neo-thick bg-white flex flex-col items-center w-16 transition-all z-40 relative h-full">
@@ -12,6 +13,13 @@ export default function Sidebar() {
           className="bg-white text-black border-b-neo w-full aspect-square flex items-center justify-center hover:bg-[#fac901] transition-all"
         >
           <span className="material-symbols-outlined scale-150">add_box</span>
+        </button>
+        <button
+          onClick={() => openCategoryModal()}
+          aria-label="Categorías"
+          className="bg-white text-black border-b-neo w-full aspect-square flex items-center justify-center hover:bg-[#fac901] transition-all"
+        >
+          <span className="material-symbols-outlined scale-150">category</span>
         </button>
         <button className="bg-white text-black border-b-neo w-full aspect-square flex items-center justify-center hover:bg-[#fac901] transition-all">
           <span className="material-symbols-outlined scale-150" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>

@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { CATEGORY_ERRORS } from '@brienne/shared';
 import { TaskService } from './task.service';
 import { TaskModel } from '../models/Task';
+import { CategoryModel } from '../models/Category';
 
 // Simulacion modular del modelo Mongoose para aislar la persistencia
 vi.mock('../models/Task', () => {
@@ -22,6 +24,13 @@ vi.mock('../models/Task', () => {
     TaskModel: MockTaskModelInstance,
   };
 });
+
+// Simulacion del modelo de categorias para validar la existencia de la referencia (RF-10)
+vi.mock('../models/Category', () => ({
+  CategoryModel: {
+    exists: vi.fn(),
+  },
+}));
 
 describe('TaskService', () => {
   beforeEach(() => {
@@ -163,6 +172,76 @@ describe('TaskService', () => {
       await expect(
         TaskService.update('id-1', { points: 99 as any })
       ).rejects.toThrow();
+    });
+  });
+
+  describe('relación con categorías', () => {
+    it('RF-10 | rechaza crear una tarea con categoría inexistente', async () => {
+      (CategoryModel.exists as any).mockResolvedValue(null);
+
+      const invalidInput = {
+        title: 'Tarea con categoría borrada',
+        points: 3 as const,
+        categoryId: '65a1b2c3d4e5f6a7b8c9d0e1',
+      };
+
+      await expect(TaskService.create(invalidInput as any)).rejects.toThrow(
+        CATEGORY_ERRORS.taskCategoryNotFound
+      );
+      expect(CategoryModel.exists).toHaveBeenCalledWith({ _id: invalidInput.categoryId });
+    });
+
+    it('RF-10 | rechaza editar una tarea con categoría inexistente', async () => {
+      (CategoryModel.exists as any).mockResolvedValue(null);
+
+      await expect(
+        TaskService.update('507f1f77bcf86cd799439011', { categoryId: '65a1b2c3d4e5f6a7b8c9d0e1' } as any)
+      ).rejects.toThrow(CATEGORY_ERRORS.taskCategoryNotFound);
+      expect(TaskModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('RF-10 | un identificador de categoría con formato inválido se trata como inexistente', async () => {
+      (CategoryModel.exists as any).mockRejectedValue(new Error('Cast to ObjectId failed'));
+
+      await expect(
+        TaskService.create({
+          title: 'Tarea con id invalido',
+          points: 3 as const,
+          categoryId: 'not-an-object-id',
+        } as any)
+      ).rejects.toThrow(CATEGORY_ERRORS.taskCategoryNotFound);
+    });
+
+    it('RF-10 | permite crear y editar tareas sin categoría asociada', async () => {
+      const created = await TaskService.create({
+        title: 'Tarea sin categoría',
+        points: 5 as const,
+      } as any);
+
+      expect(created.categoryId).toBeNull();
+      expect(CategoryModel.exists).not.toHaveBeenCalled();
+
+      (TaskModel.findByIdAndUpdate as any).mockReturnValue({
+        lean: vi.fn().mockResolvedValue({
+          _id: '507f1f77bcf86cd799439011',
+          __v: 0,
+          title: 'Tarea sin categoría',
+          points: 5,
+          ownerId: 'user-1',
+          assignedTo: [],
+          detail: null,
+          recurrence: null,
+          dueDate: null,
+          completed: false,
+          categoryId: null,
+        }),
+      });
+
+      const updated = await TaskService.update('507f1f77bcf86cd799439011', { categoryId: null } as any);
+
+      expect(updated).not.toBeNull();
+      expect(updated?.categoryId).toBeNull();
+      expect(CategoryModel.exists).not.toHaveBeenCalled();
     });
   });
 

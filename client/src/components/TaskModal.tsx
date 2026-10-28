@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Task } from '@brienne/shared';
 import { useCreateTaskMutation, useTasksQuery, useUpdateTaskMutation, useDeleteTaskMutation } from '../hooks/useTasks';
+import { useCategoriesQuery } from '../hooks/useCategories';
 import { useUIStore } from '../store/uiStore';
 
 type TaskPoints = Task['points'];
@@ -44,6 +45,11 @@ function TaskModalContent({ task, onClose }: TaskModalContentProps) {
   const [dateStr, setDateStr] = useState<string>(() => (task?.dueDate ? formatISODate(task.dueDate) : ''));
   const [timeStr, setTimeStr] = useState<string>(() => (task?.dueDate ? formatISOTime(task.dueDate) : ''));
 
+  // Relacion opcional con una categoria global: null significa tarea sin categoria (RF-10)
+  const [categoryId, setCategoryId] = useState<string | null>(task?.categoryId ?? null);
+  const { data: categories } = useCategoriesQuery();
+  const categoryList = categories ?? [];
+
   const createTaskMutation = useCreateTaskMutation();
   const updateTaskMutation = useUpdateTaskMutation();
   const deleteTaskMutation = useDeleteTaskMutation();
@@ -74,6 +80,7 @@ function TaskModalContent({ task, onClose }: TaskModalContentProps) {
           recurrence: null,
           dueDate: finalDueDate,
           completed: false,
+          categoryId,
         },
         {
           onSuccess: () => {
@@ -91,6 +98,7 @@ function TaskModalContent({ task, onClose }: TaskModalContentProps) {
             points,
             assignedTo: assignee ? [assignee] : [],
             dueDate: finalDueDate,
+            categoryId,
           },
         },
         {
@@ -106,6 +114,12 @@ function TaskModalContent({ task, onClose }: TaskModalContentProps) {
   const isCompleted = task?.completed ?? false;
   const isPending = createTaskMutation.isPending || updateTaskMutation.isPending || deleteTaskMutation.isPending;
   const isError = createTaskMutation.isError || updateTaskMutation.isError || deleteTaskMutation.isError;
+  // Mensaje canonico devuelto por la API (ej: 'Categoria inexistente' de RF-10)
+  const taskErrorMessage =
+    createTaskMutation.error?.message ??
+    updateTaskMutation.error?.message ??
+    deleteTaskMutation.error?.message ??
+    'Error al procesar la tarea';
   const taskId = task?.id;
 
   return (
@@ -231,29 +245,58 @@ function TaskModalContent({ task, onClose }: TaskModalContentProps) {
                   <label className="block font-black text-[10px] uppercase mb-4 tracking-[0.25em] text-black">
                     Categoría
                   </label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2" data-testid="category-picker">
                     <button
-                      disabled={isView}
-                      className={`px-4 py-2 border-4 border-black bg-[#ff1e01] text-white font-black text-[11px] uppercase tracking-widest transition-all ${
-                        isView
-                          ? 'opacity-80 cursor-default'
-                          : 'hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
-                      }`}
                       type="button"
-                    >
-                      Doméstica
-                    </button>
-                    <button
                       disabled={isView}
-                      className={`px-4 py-2 border-4 border-black bg-white text-black font-black text-[11px] uppercase tracking-widest transition-all ${
+                      aria-pressed={categoryId === null}
+                      onClick={() => setCategoryId(null)}
+                      className={`px-4 py-2 border-4 border-black font-black text-[11px] uppercase tracking-widest transition-all ${
+                        categoryId === null
+                          ? 'bg-[#fac901] text-black ring-4 ring-[#fac901] ring-offset-2 ring-offset-black -translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                          : 'bg-white text-black'
+                      } ${
                         isView
-                          ? 'opacity-80 cursor-default'
-                          : 'hover:bg-[#2250ce] hover:text-white hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                          ? categoryId === null
+                            ? 'opacity-100 cursor-default'
+                            : 'opacity-35 grayscale cursor-default'
+                          : categoryId === null
+                            ? ''
+                            : 'hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
                       }`}
-                      type="button"
                     >
-                      Laboral
+                      SIN CATEGORÍA
                     </button>
+                    {categoryList.map((category) => {
+                      const isSelected = categoryId === category.id;
+                      return (
+                        <button
+                          key={category.id}
+                          type="button"
+                          disabled={isView}
+                          aria-pressed={isSelected}
+                          onClick={() => setCategoryId(category.id ?? null)}
+                          style={{ backgroundColor: category.color }}
+                          className={`px-4 py-2 border-4 border-black font-black text-[11px] uppercase tracking-widest transition-all ${
+                            category.color === '#ffffff' ? 'text-black' : 'text-white'
+                          } ${
+                            isSelected
+                              ? 'ring-4 ring-[#fac901] ring-offset-2 ring-offset-black -translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                              : ''
+                          } ${
+                            isView
+                              ? isSelected
+                                ? 'opacity-100 cursor-default'
+                                : 'opacity-35 grayscale cursor-default'
+                              : isSelected
+                                ? ''
+                                : 'hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                          }`}
+                        >
+                          {category.nombre}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -267,7 +310,7 @@ function TaskModalContent({ task, onClose }: TaskModalContentProps) {
                         key={point}
                         onClick={() => !isView && setPoints(point)}
                         className={`aspect-square flex items-center justify-center border-4 border-black font-black text-sm transition-colors ${
-                          points === point ? 'bg-[#fac901] text-black border-dashed' : 'bg-white'
+                          points === point ? 'bg-[#fac901] text-black' : 'bg-white'
                         } ${
                           isView
                             ? points === point
@@ -342,7 +385,7 @@ function TaskModalContent({ task, onClose }: TaskModalContentProps) {
                     Sujeto al Código de Honor v.2.4
                   </p>
                   {isError && (
-                    <p className="text-red-500 font-bold text-xs mt-2 uppercase">Error al procesar la tarea</p>
+                    <p className="text-red-500 font-bold text-xs mt-2 uppercase">{taskErrorMessage}</p>
                   )}
                 </div>
 

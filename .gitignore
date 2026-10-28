@@ -1,3 +1,6 @@
+# Carpeta temporal
+/tmp
+
 # Logs
 logs
 *.log

@@ -22,6 +22,8 @@ export const TaskSchema = z.object({
   recurrence: z.string().nullable(), // Null si no es recurrente
   dueDate: z.coerce.date().nullable(), // Zod transformará strings ISO a objetos Date si se envía desde JSON
   completed: z.boolean().default(false),
+  // Relacion opcional con una categoria global (spec 005); null significa tarea sin categoria
+  categoryId: z.string().nullable().default(null),
 });
 
 export type Task = z.infer<typeof TaskSchema>;

@@ -9,7 +9,7 @@
   --color-primary: #bc0002;
   --color-primary-container: #e22619;
   --color-secondary: #2c4bdb;
-  --color-tertiary: #715d00;
+  --color-tertiary: #fac901;
   --color-surface-container: #eeeeee;
 
   --font-headline: "Inter", sans-serif;
@@ -46,4 +46,3 @@
     box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
   }
 }
-

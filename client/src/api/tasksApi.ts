@@ -3,6 +3,16 @@ import type { Task, CreateTaskDTO } from '@brienne/shared';
 // No necesitamos la URL completa gracias al proxy the vite que hemos configurado en vite.config.ts.
 const BASE_URL = '/api/tasks';
 
+// Extrae el payload de error canonico { error } para que la UI muestre el mensaje real del backend
+async function readError(response: Response): Promise<Error> {
+  const body = await response.json().catch(() => null);
+  const message =
+    body && typeof body === 'object' && typeof (body as { error?: unknown }).error === 'string'
+      ? (body as { error: string }).error
+      : 'Error en la operación de tareas';
+  return new Error(message);
+}
+
 export const getTasks = async (): Promise<Task[]> => {
   const response = await fetch(BASE_URL);
   if (!response.ok) {
@@ -21,7 +31,7 @@ export const createTask = async (task: CreateTaskDTO): Promise<Task> => {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to create task');
+    throw await readError(response);
   }
   
   return response.json();
@@ -37,7 +47,7 @@ export const updateTask = async (id: string, taskUpdates: Partial<Task>): Promis
   });
 
   if (!response.ok) {
-    throw new Error('Failed to update task');
+    throw await readError(response);
   }
   
   return response.json();
@@ -49,6 +59,6 @@ export const deleteTask = async (id: string): Promise<void> => {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to delete task');
+    throw await readError(response);
   }
 };

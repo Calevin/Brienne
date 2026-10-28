@@ -11,6 +11,12 @@
     "003_sincronizacion_calendario_agenda": {
       "spec_hash": "baa93e2c935cdba40115c5646315e07835ce2b17733d84d9e63afdb7096cc23e",
       "verifier_hash": "6feda7e72ca479f640102da9c6574e7abb79b36a32156693b991e6c03250dcb5"
+    },
+    "005_categorias": {
+      "spec_hash": "08145a2d76e533f67ebc3789f0d5886da785d25277805cb02ce005b2997583f8",
+      "verifier_hash": "16f98a11e3f758cb2e7e3194c2b93904b3abf024bbf5cf23ba1de3161304bbd1",
+      "verified": true,
+      "commit_hash": "2f69d9e"
     }
   }
 }

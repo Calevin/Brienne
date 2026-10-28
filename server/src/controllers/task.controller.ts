@@ -1,6 +1,14 @@
 import { Request, Response } from 'express';
 import { TaskService } from '../services/task.service';
 import { CreateTaskDTO } from '@brienne/shared';
+import { DomainError, DomainErrorCode } from '../services/errors';
+
+// Traduccion de errores de dominio a codigos HTTP canonicos (constitution E)
+const DOMAIN_HTTP_STATUS: Record<DomainErrorCode, number> = {
+  VALIDATION: 400,
+  DUPLICATE_NAME: 409,
+  NOT_FOUND: 404,
+};
 
 export const getTasks = async (_req: Request, res: Response): Promise<void> => {
   try {
@@ -18,6 +26,10 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
     const task = await TaskService.create(taskData);
     res.status(201).json(task);
   } catch (error) {
+    if (error instanceof DomainError) {
+      res.status(DOMAIN_HTTP_STATUS[error.code]).json({ error: error.message });
+      return;
+    }
     console.error('Error creating task:', error);
     res.status(400).json({ error: 'Error creating task' });
   }
@@ -35,6 +47,10 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
 
     res.json(task);
   } catch (error) {
+    if (error instanceof DomainError) {
+      res.status(DOMAIN_HTTP_STATUS[error.code]).json({ error: error.message });
+      return;
+    }
     console.error('Error updating task:', error);
     res.status(400).json({ error: 'Error updating task' });
   }
